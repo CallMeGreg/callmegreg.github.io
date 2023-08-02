@@ -7,9 +7,14 @@ function TeamGenerator() {
   const [teamPlayers, setTeamPlayers] = useState([]);
   const [showTeams, setShowTeams] = useState(false);
   const [usePlaceholders, setUsePlaceholders] = useState(false);
+  const [useGeckoNames, setUseGeckoNames] = useState(false); // new state for checkbox
+
+  const leopardGeckoNames = ['Leo', 'Luna', 'Ziggy', 'Gizmo', 'Spike', 'Rex', 'Milo', 'Cleo', 'Jax', 'Nova', 'Echo', 'Onyx', 'Jade', 'Ruby', 'Sapphire', 'Topaz', 'Opal', 'Amber', 'Jasper', 'Emerald'];
 
   const handleAddPlayer = () => {
-    if (usePlaceholders) {
+    if (useGeckoNames) {
+      setPlayers([...players, leopardGeckoNames[Math.floor(Math.random() * leopardGeckoNames.length)]]);
+    } else if (usePlaceholders) { // new condition to autofill with gecko names
       setPlayers([...players, `Player ${players.length + 1}`]);
     } else {
       setPlayers([...players, '']);
@@ -52,6 +57,10 @@ function TeamGenerator() {
     setUsePlaceholders(event.target.checked);
   };
 
+  const handleUseGeckoNamesChange = (event) => { // new function to handle checkbox change
+    setUseGeckoNames(event.target.checked);
+  };
+
   return (
     <div className="team-generator">
       <h1>Random Team Generator</h1>
@@ -65,13 +74,23 @@ function TeamGenerator() {
         onChange={handleTeamChange}
       />
       <div className="checkbox-container">
-        <label htmlFor="usePlaceholders">Auto-generate player names?</label>
+        <label htmlFor="usePlaceholders">Autofill player names?</label>
         <input
           type="checkbox"
           id="usePlaceholders"
           name="usePlaceholders"
           checked={usePlaceholders}
           onChange={handleUsePlaceholdersChange}
+        />
+      </div>
+      <div className="checkbox-container"> {/* new checkbox container */}
+        <label htmlFor="useGeckoNames">Autofill with leopard gecko names?</label>
+        <input
+          type="checkbox"
+          id="useGeckoNames"
+          name="useGeckoNames"
+          checked={useGeckoNames}
+          onChange={handleUseGeckoNamesChange}
         />
       </div>
       <button onClick={handleAddPlayer}>Add Player</button>
