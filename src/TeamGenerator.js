@@ -9,7 +9,7 @@ function TeamGenerator() {
   const [usePlaceholders, setUsePlaceholders] = useState(false);
   const [useGeckoNames, setUseGeckoNames] = useState(false); // new state for checkbox
 
-  const leopardGeckoNames = ['Leo', 'Luna', 'Ziggy', 'Gizmo', 'Spike', 'Rex', 'Milo', 'Cleo', 'Jax', 'Nova', 'Echo', 'Onyx', 'Jade', 'Ruby', 'Sapphire', 'Topaz', 'Opal', 'Amber', 'Jasper', 'Emerald'];
+  const leopardGeckoNames = ['Leo', 'Luna', 'Ziggy', 'Gizmo', 'Spike', 'Rex', 'Milo', 'Cleo', 'Jax', 'Nova', 'Echo', 'Onyx', 'Jade', 'Ruby', 'Sapphire', 'Topaz', 'Opal', 'Amber', 'Jasper', 'Emerald', 'Buddy', 'Cinnamon', 'Dexter', 'Finn', 'Gatsby', 'Hazel', 'Ivy', 'Jasmine', 'Koda', 'Loki', 'Mango', 'Nala', 'Oscar', 'Penny', 'Quincy', 'Riley', 'Sage', 'Toby', 'Ursula', 'Violet', 'Willow', 'Xander', 'Yara', 'Zara', 'Charmello'];
 
   const handleAddPlayer = () => {
     if (useGeckoNames) {
