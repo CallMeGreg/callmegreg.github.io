@@ -12,13 +12,20 @@ function TeamGenerator() {
   const leopardGeckoNames = ['Leo', 'Luna', 'Ziggy', 'Gizmo', 'Spike', 'Rex', 'Milo', 'Cleo', 'Jax', 'Nova', 'Echo', 'Onyx', 'Jade', 'Ruby', 'Sapphire', 'Topaz', 'Opal', 'Amber', 'Jasper', 'Emerald', 'Buddy', 'Cinnamon', 'Dexter', 'Finn', 'Gatsby', 'Hazel', 'Ivy', 'Jasmine', 'Koda', 'Loki', 'Mango', 'Nala', 'Oscar', 'Penny', 'Quincy', 'Riley', 'Sage', 'Toby', 'Ursula', 'Violet', 'Willow', 'Xander', 'Yara', 'Zara', 'Charmello'];
 
   const handleAddPlayer = () => {
+    let newPlayerName;
     if (useGeckoNames) {
-      setPlayers([...players, leopardGeckoNames[Math.floor(Math.random() * leopardGeckoNames.length)]]);
-    } else if (usePlaceholders) { // new condition to autofill with gecko names
-      setPlayers([...players, `Player ${players.length + 1}`]);
+      const availableNames = leopardGeckoNames.filter(name => !players.includes(name));
+      if (availableNames.length === 0) {
+        newPlayerName = leopardGeckoNames[Math.floor(Math.random() * leopardGeckoNames.length)];
+      } else {
+        newPlayerName = availableNames[Math.floor(Math.random() * availableNames.length)];
+      }
+    } else if (usePlaceholders) {
+      newPlayerName = `Player ${players.length + 1}`;
     } else {
-      setPlayers([...players, '']);
+      newPlayerName = '';
     }
+    setPlayers([...players, newPlayerName]);
   };
 
   const handleDeletePlayer = (index) => {
