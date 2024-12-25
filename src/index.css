@@ -11,3 +11,41 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.home {
+  text-align: center;
+}
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: white;
+}
+
+.button img {
+  width: 25vw; /* 1/4 the width of the page */
+  height: 25vw; /* 1/4 the height of the page */
+  object-fit: cover;
+  min-width: 50px; /* Minimum width */
+  min-height: 50px; /* Minimum height */
+}
+
+.button span {
+  margin-top: 10px;
+  font-size: 18px;
+}
+
+.button:hover {
+  background-color: rgba(255, 255, 255, 0.1); /* Slightly lighter background color */
+  transform: scale(0.95); /* Slightly shrink the image */
+  transition: transform 0.2s ease-in-out; /* Smooth transition */
+}
