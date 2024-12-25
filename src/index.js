@@ -28,8 +28,8 @@ function Home() {
           <img src="/images/vs_picture.jpeg" alt="Team Generator" />
           <span>Generate Teams</span>
         </Link>
-        <Link to="/new-page" className="button">
-          <img src="/images/unmatched-cover.png" alt="New Page" />
+        <Link to="/unmatched-matchup" className="button">
+          <img src="/images/unmatched-cover.png" alt="Unmatched Matchup" />
           <span>Unmatched Matchup</span>
         </Link>
       </div>
@@ -44,7 +44,7 @@ root.render(
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/team-generator" element={<TeamGenerator />} />
-        <Route path="/new-page" element={<Unmatched />} /> {/* Reference Unmatched component */}
+        <Route path="/unmatched-matchup" element={<Unmatched />} /> {/* Reference Unmatched component */}
       </Routes>
     </Router>
   </React.StrictMode>
