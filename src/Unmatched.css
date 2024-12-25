@@ -1,0 +1,147 @@
+body {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background-color: #1c1c1c;
+  color: #fff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  height: 100vh;
+  padding-top: 10px; /* Reduced padding-top */
+  margin: 0; /* Removed default margin */
+  overflow: hidden; /* Prevent overflow */
+}
+
+.unmatched {
+  text-align: center;
+  padding: 10px; /* Reduced padding */
+  background-color: #2d2d2d; /* Updated background color to match TeamGenerator.css */
+  width: 45vw; /* Set width to half the window */
+  max-width: 1200px; /* Set a max-width */
+  height: 90vh; /* Adjusted height */
+  overflow-y: auto; /* Added vertical scroll */
+  border-radius: 10px; /* Added border radius */
+}
+
+.unmatched h1 {
+  font-size: 2em;
+  margin-bottom: 20px;
+}
+
+.unmatched p {
+  font-size: 1.2em;
+}
+
+.grid {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 10px; /* Reduced margin-top */
+  border: 2px solid #444; /* Added border around the grid */
+  padding: 10px; /* Added padding inside the grid */
+  border-radius: 10px; /* Added border radius */
+}
+
+.grid div {
+  width: 45%;
+  border: 2px solid #444; /* Added border around each section */
+  padding: 10px; /* Added padding inside each section */
+  border-radius: 10px; /* Added border radius */
+}
+
+.grid div h2 {
+  font-size: 1.2em; /* Reduced font size */
+}
+
+.grid ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.grid li {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.grid label {
+  display: flex;
+  align-items: center;
+  font-size: 1.0em; /* Slightly smaller font size for labels */
+}
+
+.matchup-results {
+  margin-top: 10px; /* Reduced margin-top */
+}
+
+.matchup-results h2 {
+  font-size: 1.2em;
+  margin-bottom: 10px;
+}
+
+.matchup-results h3 {
+  font-size: 1.2em;
+  margin-bottom: 5px;
+}
+
+.matchup-results ul {
+  list-style-type: none;
+  padding: 0;
+  text-align: left; /* Left align the character results */
+}
+
+.matchup-results li {
+  margin-bottom: 10px;
+}
+
+.matchup-results button {
+  margin-left: 10px;
+  background-color: #007acc; /* Updated button color to match TeamGenerator.css */
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 1.2em; /* Increased font size for the arrow */
+}
+
+.grid button {
+  margin: 5px;
+  background-color: #007acc; /* Updated button color to match TeamGenerator.css */
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.grid button:hover,
+.matchup-results button:hover {
+  background-color: #0062a3; /* Updated hover color to match TeamGenerator.css */
+}
+
+.generate-button {
+  background-color: #28a745; /* Updated button color to green */
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+  font-size: 20px;
+}
+
+.generate-button:hover {
+  background-color: #218838; /* Updated hover color to dark green */
+}
+
+.generate-button-container {
+  padding: 20px; /* Added padding around the generate button */
+}
+
+.results-grid {
+  display: flex;
+  justify-content: space-between;
+}
+
+.results-section {
+  width: 45%;
+}

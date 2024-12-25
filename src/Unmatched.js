@@ -1,0 +1,205 @@
+import React, { useState, useEffect } from 'react';
+import './Unmatched.css';
+import Papa from 'papaparse';
+import charactersCSV from './UnmatchedCharacters.csv';
+import mapsCSV from './UnmatchedMaps.csv';
+
+function Unmatched() {
+  const [numPlayers, setNumPlayers] = useState(2); // Default number of players set to 2
+  const [characters, setCharacters] = useState([]);
+  const [maps, setMaps] = useState([]);
+  const [selectedCharacters, setSelectedCharacters] = useState([]);
+  const [selectedMaps, setSelectedMaps] = useState([]);
+  const [matchup, setMatchup] = useState({ players: [], map: '' });
+  const [characterData, setCharacterData] = useState([]); // State to store parsed character data
+
+  useEffect(() => {
+    Papa.parse(charactersCSV, {
+      download: true,
+      header: true, // Enable header parsing
+      complete: (result) => {
+        const characterNames = result.data.map(row => row['category']); // Adjust to fetch from the "category" column
+        setCharacters(characterNames);
+        setSelectedCharacters(characterNames.map(() => true));
+        setCharacterData(result.data); // Store parsed character data
+      }
+    });
+
+    Papa.parse(mapsCSV, {
+      download: true,
+      header: true, // Enable header parsing
+      complete: (result) => {
+        const mapNames = result.data.map(row => row['name']); // Adjust to fetch from the "name" column
+        setMaps(mapNames);
+        setSelectedMaps(mapNames.map(() => true));
+      }
+    });
+  }, []);
+
+  const handleNumPlayersChange = (e) => {
+    setNumPlayers(e.target.value);
+  };
+
+  const handleCharacterChange = (index) => {
+    const newSelectedCharacters = [...selectedCharacters];
+    newSelectedCharacters[index] = !newSelectedCharacters[index];
+    setSelectedCharacters(newSelectedCharacters);
+  };
+
+  const handleMapChange = (index) => {
+    const newSelectedMaps = [...selectedMaps];
+    newSelectedMaps[index] = !newSelectedMaps[index];
+    setSelectedMaps(newSelectedMaps);
+  };
+
+  const generateMatchup = () => {
+    const availableCharacters = characters.filter((_, index) => selectedCharacters[index]);
+    const availableMaps = maps.filter((_, index) => selectedMaps[index]);
+
+    if (availableCharacters.length < numPlayers || availableMaps.length === 0) {
+      alert("Not enough characters or maps selected.");
+      return;
+    }
+
+    const players = [];
+    for (let i = 0; i < numPlayers; i++) {
+      const randomIndex = Math.floor(Math.random() * availableCharacters.length);
+      players.push(availableCharacters.splice(randomIndex, 1)[0]);
+    }
+
+    if (numPlayers === 2) {
+      const player1 = players[0].split(' (')[0]; // Extract character name without win rate
+      const player2 = players[1].split(' (')[0]; // Extract character name without win rate
+      const player1Data = characterData.find(row => row['category'] === player1);
+      const player2Data = characterData.find(row => row['category'] === player2);
+      const player1WinRate = player1Data ? player1Data[player2] : 'N/A';
+      const player2WinRate = player2Data ? player2Data[player1] : 'N/A';
+      players[0] = `${player1} (${player1WinRate}%)`;
+      players[1] = `${player2} (${player2WinRate}%)`;
+    }
+
+    const randomMap = availableMaps[Math.floor(Math.random() * availableMaps.length)];
+
+    setMatchup({ players, map: randomMap });
+  };
+
+  const regeneratePlayer = (index) => {
+    const availableCharacters = characters.filter((_, i) => selectedCharacters[i] && !matchup.players.includes(characters[i]));
+    const randomIndex = Math.floor(Math.random() * availableCharacters.length);
+    const newPlayers = [...matchup.players];
+    newPlayers[index] = availableCharacters[randomIndex];
+
+    if (numPlayers === 2) {
+      const player1 = newPlayers[0].split(' (')[0]; // Extract character name without win rate
+      const player2 = newPlayers[1].split(' (')[0]; // Extract character name without win rate
+      const player1Data = characterData.find(row => row['category'] === player1);
+      const player2Data = characterData.find(row => row['category'] === player2);
+      const player1WinRate = player1Data ? player1Data[player2] : 'N/A';
+      const player2WinRate = player2Data ? player2Data[player1] : 'N/A';
+      newPlayers[0] = `${player1} (${player1WinRate}%)`;
+      newPlayers[1] = `${player2} (${player2WinRate}%)`;
+    }
+
+    setMatchup({ ...matchup, players: newPlayers });
+  };
+
+  const regenerateMap = () => {
+    const availableMaps = maps.filter((_, index) => selectedMaps[index]);
+    const randomMap = availableMaps[Math.floor(Math.random() * availableMaps.length)];
+    setMatchup({ ...matchup, map: randomMap });
+  };
+
+  const selectAllCharacters = () => {
+    setSelectedCharacters(characters.map(() => true));
+  };
+
+  const deselectAllCharacters = () => {
+    setSelectedCharacters(characters.map(() => false));
+  };
+
+  const selectAllMaps = () => {
+    setSelectedMaps(maps.map(() => true));
+  };
+
+  const deselectAllMaps = () => {
+    setSelectedMaps(maps.map(() => false));
+  };
+
+  return (
+    <div className="unmatched">
+      <h1>⚔️ Unmatched Matchup 🛡️</h1> {/* Added swords and shield emojis */}
+      <div>
+        <label>
+          Number of Players:
+          <input type="number" value={numPlayers} onChange={handleNumPlayersChange} min="2" max="5" />
+        </label>
+      </div>
+      <div className="generate-button-container">
+        <button className="generate-button" onClick={generateMatchup}>Generate a Matchup</button>
+      </div>
+      {matchup.players.length > 0 && (
+        <div className="matchup-results">
+          <h2>Matchup Results</h2>
+          <div className="results-grid">
+            <div className="results-section">
+              <h3>Characters</h3>
+              <ul>
+                {matchup.players.map((player, index) => (
+                  <li key={index}>
+                    {player} <button onClick={() => regeneratePlayer(index)}>↻</button> {/* Updated button text to arrow */}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="results-section">
+              <h3>Map</h3>
+              <p>{matchup.map} <button onClick={regenerateMap}>↻</button> {/* Updated button text to arrow */}</p>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="grid">
+        <div>
+          <h2>Character Selection</h2>
+          <button onClick={selectAllCharacters}>Select All</button>
+          <button onClick={deselectAllCharacters}>Deselect All</button>
+          <ul>
+            {characters.map((character, index) => (
+              <li key={character}>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={selectedCharacters[index]}
+                    onChange={() => handleCharacterChange(index)}
+                  />
+                  {character}
+                </label>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h2>Map Selection</h2>
+          <button onClick={selectAllMaps}>Select All</button>
+          <button onClick={deselectAllMaps}>Deselect All</button>
+          <ul>
+            {maps.map((map, index) => (
+              <li key={map}>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={selectedMaps[index]}
+                    onChange={() => handleMapChange(index)}
+                  />
+                  {map}
+                </label>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default Unmatched;
