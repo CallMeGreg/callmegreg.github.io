@@ -15,8 +15,8 @@ body {
   text-align: center;
   padding: 10px; /* Reduced padding */
   background-color: #2d2d2d; /* Updated background color to match TeamGenerator.css */
-  width: 45vw; /* Set width to half the window */
-  max-width: 1200px; /* Set a max-width */
+  width: 100vw; /* Set width to half the window */
+  max-width: 750px; /* Set a max-width */
   height: 90vh; /* Adjusted height */
   overflow-y: auto; /* Added vertical scroll */
   border-radius: 10px; /* Added border radius */
@@ -135,6 +135,16 @@ body {
 
 .generate-button-container {
   padding: 20px; /* Added padding around the generate button */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.generate-button-group {
+  display: flex;
+  justify-content: center;
+  gap: 10px; /* Space between buttons */
+  margin-top: 10px; /* Space above the button group */
 }
 
 .results-grid {

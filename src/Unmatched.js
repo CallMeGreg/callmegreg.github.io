@@ -83,6 +83,92 @@ function Unmatched() {
     setMatchup({ players, map: randomMap });
   };
 
+  const threshold = 10; // Define the threshold value
+  const minWinRate = 40; // Minimum win rate
+  const maxWinRate = 60; // Maximum win rate
+
+  const generateFairMatchup = () => {
+    const availableCharacters = characters.filter((_, index) => selectedCharacters[index]);
+    const availableMaps = maps.filter((_, index) => selectedMaps[index]);
+
+    const fairMatchups = [];
+
+    characterData.forEach(row => {
+      const rowCharacter = row['category'];
+      if (availableCharacters.includes(rowCharacter)) {
+        availableCharacters.forEach(colCharacter => {
+          const winRate = row[colCharacter];
+          if (winRate >= threshold && winRate >= minWinRate && winRate <= maxWinRate) {
+            fairMatchups.push({ rowCharacter, colCharacter, value: winRate });
+          }
+        });
+      }
+    });
+
+    if (fairMatchups.length === 0) {
+      alert("No fair matchups found.");
+      return;
+    }
+
+    const randomIndex = Math.floor(Math.random() * fairMatchups.length);
+    const selectedMatchup = fairMatchups[randomIndex];
+
+    const player1WinRate = selectedMatchup.value;
+    const player2WinRate = characterData.find(row => row['category'] === selectedMatchup.colCharacter)[selectedMatchup.rowCharacter];
+
+    const randomMap = availableMaps[Math.floor(Math.random() * availableMaps.length)];
+
+    setMatchup({
+      players: [
+        `${selectedMatchup.rowCharacter} (${player1WinRate}%)`,
+        `${selectedMatchup.colCharacter} (${player2WinRate}%)`
+      ],
+      map: randomMap,
+      fairMatchupCount: Math.floor(fairMatchups.length / 2) // Add the count of fair matchups divided by 2
+    });
+  };
+
+  const generateUnfairMatchup = () => {
+    const availableCharacters = characters.filter((_, index) => selectedCharacters[index]);
+    const availableMaps = maps.filter((_, index) => selectedMaps[index]);
+
+    const unfairMatchups = [];
+
+    characterData.forEach(row => {
+      const rowCharacter = row['category'];
+      if (availableCharacters.includes(rowCharacter)) {
+        availableCharacters.forEach(colCharacter => {
+          const winRate = row[colCharacter];
+          if (winRate >= threshold && (winRate < minWinRate || winRate > maxWinRate)) {
+            unfairMatchups.push({ rowCharacter, colCharacter, value: winRate });
+          }
+        });
+      }
+    });
+
+    if (unfairMatchups.length === 0) {
+      alert("No unfair matchups found.");
+      return;
+    }
+
+    const randomIndex = Math.floor(Math.random() * unfairMatchups.length);
+    const selectedMatchup = unfairMatchups[randomIndex];
+
+    const player1WinRate = selectedMatchup.value;
+    const player2WinRate = characterData.find(row => row['category'] === selectedMatchup.colCharacter)[selectedMatchup.rowCharacter];
+
+    const randomMap = availableMaps[Math.floor(Math.random() * availableMaps.length)];
+
+    setMatchup({
+      players: [
+        `${selectedMatchup.rowCharacter} (${player1WinRate}%)`,
+        `${selectedMatchup.colCharacter} (${player2WinRate}%)`
+      ],
+      map: randomMap,
+      unfairMatchupCount: Math.floor(unfairMatchups.length / 2) // Add the count of unfair matchups divided by 2
+    });
+  };
+
   const regeneratePlayer = (index) => {
     const availableCharacters = characters.filter((_, i) => selectedCharacters[i] && !matchup.players.includes(characters[i]));
     const randomIndex = Math.floor(Math.random() * availableCharacters.length);
@@ -135,11 +221,21 @@ function Unmatched() {
         </label>
       </div>
       <div className="generate-button-container">
-        <button className="generate-button" onClick={generateMatchup}>Generate a Matchup</button>
+        <button className="generate-button" onClick={generateMatchup}>Random Matchup</button>
+        <div className="generate-button-group">
+          <button className="generate-button" onClick={generateFairMatchup}>Fair Matchup</button>
+          <button className="generate-button" onClick={generateUnfairMatchup}>Unfair Matchup</button>
+        </div>
       </div>
       {matchup.players.length > 0 && (
         <div className="matchup-results">
           <h2>Matchup Results</h2>
+          {matchup.fairMatchupCount && (
+            <p>Number of possible fair matchups: {matchup.fairMatchupCount}</p>
+          )}
+          {matchup.unfairMatchupCount && (
+            <p>Number of possible unfair matchups: {matchup.unfairMatchupCount}</p>
+          )}
           <div className="results-grid">
             <div className="results-section">
               <h3>Characters</h3>
