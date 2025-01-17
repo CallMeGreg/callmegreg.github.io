@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import TeamGenerator from './TeamGenerator';
 import Unmatched from './Unmatched'; // Import Unmatched component
 import './index.css';
+import CoinChaser from './CoinChaser';
 
 function Home() {
   const quotes = [
@@ -32,6 +33,10 @@ function Home() {
           <img src="/images/unmatched-cover.png" alt="Unmatched Matchup" />
           <span>Unmatched Matchup</span>
         </Link>
+        <Link to="/godot-game" className="button">
+          <img src="/images/coin-chase.png" alt="Coin Chaser" />
+          <span>Coin Chaser</span>
+        </Link>
       </div>
     </div>
   );
@@ -44,7 +49,8 @@ root.render(
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/team-generator" element={<TeamGenerator />} />
-        <Route path="/unmatched-matchup" element={<Unmatched />} /> {/* Reference Unmatched component */}
+        <Route path="/unmatched-matchup" element={<Unmatched />} />
+        <Route path="/godot-game" element={<CoinChaser />} />
       </Routes>
     </Router>
   </React.StrictMode>
