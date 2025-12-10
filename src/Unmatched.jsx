@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './Unmatched.css';
 import Papa from 'papaparse';
-import charactersCSV from './UnmatchedCharacters.csv';
-import mapsCSV from './UnmatchedMaps.csv';
+
+const THRESHOLD = 10; // Minimum threshold value for valid matchups
 
 function Unmatched() {
   const [numPlayers, setNumPlayers] = useState(2); // Default number of players set to 2
@@ -12,9 +12,12 @@ function Unmatched() {
   const [selectedMaps, setSelectedMaps] = useState([]);
   const [matchup, setMatchup] = useState({ players: [], map: '' });
   const [characterData, setCharacterData] = useState([]); // State to store parsed character data
+  const [minWinRate, setMinWinRate] = useState(0); // Minimum win rate for slider
+  const [maxWinRate, setMaxWinRate] = useState(100); // Maximum win rate for slider
+  const [matchupCount, setMatchupCount] = useState(0); // Number of potential matchups
 
   useEffect(() => {
-    Papa.parse(charactersCSV, {
+    Papa.parse('/UnmatchedCharacters.csv', {
       download: true,
       header: true, // Enable header parsing
       complete: (result) => {
@@ -25,7 +28,7 @@ function Unmatched() {
       }
     });
 
-    Papa.parse(mapsCSV, {
+    Papa.parse('/UnmatchedMaps.csv', {
       download: true,
       header: true, // Enable header parsing
       complete: (result) => {
@@ -36,8 +39,30 @@ function Unmatched() {
     });
   }, []);
 
-  const handleNumPlayersChange = (e) => {
-    setNumPlayers(e.target.value);
+  // Calculate potential matchups count when slider values or character selections change
+  useEffect(() => {
+    if (characterData.length === 0) return;
+
+    const availableCharacters = characters.filter((_, index) => selectedCharacters[index]);
+    const matchups = [];
+
+    characterData.forEach(row => {
+      const rowCharacter = row['Winner'];
+      if (availableCharacters.includes(rowCharacter)) {
+        availableCharacters.forEach(colCharacter => {
+          const winRate = parseFloat(row[colCharacter]);
+          if (!isNaN(winRate) && winRate >= THRESHOLD && winRate >= minWinRate && winRate <= maxWinRate && rowCharacter !== colCharacter) {
+            matchups.push({ rowCharacter, colCharacter, value: winRate });
+          }
+        });
+      }
+    });
+
+    setMatchupCount(Math.floor(matchups.length / 2)); // Divide by 2 to avoid counting duplicates
+  }, [minWinRate, maxWinRate, selectedCharacters, characterData, characters]);
+
+  const handleNumPlayersChange = (num) => {
+    setNumPlayers(num);
   };
 
   const handleCharacterChange = (index) => {
@@ -74,8 +99,8 @@ function Unmatched() {
       const player2Data = characterData.find(row => row['Winner'] === player2);
       const player1WinRate = player1Data ? player1Data[player2] : 'N/A';
       const player2WinRate = player2Data ? player2Data[player1] : 'N/A';
-      players[0] = `${player1} (${player1WinRate}%)`;
-      players[1] = `${player2} (${player2WinRate}%)`;
+      players[0] = `${player1} (${player1WinRate})`;
+      players[1] = `${player2} (${player2WinRate})`;
     }
 
     const randomMap = availableMaps[Math.floor(Math.random() * availableMaps.length)];
@@ -83,89 +108,45 @@ function Unmatched() {
     setMatchup({ players, map: randomMap });
   };
 
-  const threshold = 10; // Define the threshold value
-  const minWinRate = 40; // Minimum win rate
-  const maxWinRate = 60; // Maximum win rate
-
-  const generateFairMatchup = () => {
+  const generateRangedMatchup = () => {
     const availableCharacters = characters.filter((_, index) => selectedCharacters[index]);
     const availableMaps = maps.filter((_, index) => selectedMaps[index]);
 
-    const fairMatchups = [];
+    const rangedMatchups = [];
 
     characterData.forEach(row => {
       const rowCharacter = row['Winner'];
       if (availableCharacters.includes(rowCharacter)) {
         availableCharacters.forEach(colCharacter => {
-          const winRate = row[colCharacter];
-          if (winRate >= threshold && winRate >= minWinRate && winRate <= maxWinRate) {
-            fairMatchups.push({ rowCharacter, colCharacter, value: winRate });
+          const winRate = parseFloat(row[colCharacter]);
+          if (!isNaN(winRate) && winRate >= THRESHOLD && winRate >= minWinRate && winRate <= maxWinRate && rowCharacter !== colCharacter) {
+            rangedMatchups.push({ rowCharacter, colCharacter, value: winRate });
           }
         });
       }
     });
 
-    if (fairMatchups.length === 0) {
-      alert("No fair matchups found.");
+    if (rangedMatchups.length === 0) {
+      alert("No matchups found in the selected win rate range.");
       return;
     }
 
-    const randomIndex = Math.floor(Math.random() * fairMatchups.length);
-    const selectedMatchup = fairMatchups[randomIndex];
+    const randomIndex = Math.floor(Math.random() * rangedMatchups.length);
+    const selectedMatchup = rangedMatchups[randomIndex];
 
-    const player1WinRate = selectedMatchup.value;
-    const player2WinRate = characterData.find(row => row['Winner'] === selectedMatchup.colCharacter)[selectedMatchup.rowCharacter];
+    const player1Data = characterData.find(row => row['Winner'] === selectedMatchup.rowCharacter);
+    const player2Data = characterData.find(row => row['Winner'] === selectedMatchup.colCharacter);
+    const player1WinRate = player1Data ? player1Data[selectedMatchup.colCharacter] : 'N/A';
+    const player2WinRate = player2Data ? player2Data[selectedMatchup.rowCharacter] : 'N/A';
 
     const randomMap = availableMaps[Math.floor(Math.random() * availableMaps.length)];
 
     setMatchup({
       players: [
-        `${selectedMatchup.rowCharacter} (${player1WinRate}%)`,
-        `${selectedMatchup.colCharacter} (${player2WinRate}%)`
+        `${selectedMatchup.rowCharacter} (${player1WinRate})`,
+        `${selectedMatchup.colCharacter} (${player2WinRate})`
       ],
-      map: randomMap,
-      fairMatchupCount: Math.floor(fairMatchups.length / 2) // Add the count of fair matchups divided by 2
-    });
-  };
-
-  const generateUnfairMatchup = () => {
-    const availableCharacters = characters.filter((_, index) => selectedCharacters[index]);
-    const availableMaps = maps.filter((_, index) => selectedMaps[index]);
-
-    const unfairMatchups = [];
-
-    characterData.forEach(row => {
-      const rowCharacter = row['Winner'];
-      if (availableCharacters.includes(rowCharacter)) {
-        availableCharacters.forEach(colCharacter => {
-          const winRate = row[colCharacter];
-          if (winRate >= threshold && (winRate < minWinRate || winRate > maxWinRate)) {
-            unfairMatchups.push({ rowCharacter, colCharacter, value: winRate });
-          }
-        });
-      }
-    });
-
-    if (unfairMatchups.length === 0) {
-      alert("No unfair matchups found.");
-      return;
-    }
-
-    const randomIndex = Math.floor(Math.random() * unfairMatchups.length);
-    const selectedMatchup = unfairMatchups[randomIndex];
-
-    const player1WinRate = selectedMatchup.value;
-    const player2WinRate = characterData.find(row => row['Winner'] === selectedMatchup.colCharacter)[selectedMatchup.rowCharacter];
-
-    const randomMap = availableMaps[Math.floor(Math.random() * availableMaps.length)];
-
-    setMatchup({
-      players: [
-        `${selectedMatchup.rowCharacter} (${player1WinRate}%)`,
-        `${selectedMatchup.colCharacter} (${player2WinRate}%)`
-      ],
-      map: randomMap,
-      unfairMatchupCount: Math.floor(unfairMatchups.length / 2) // Add the count of unfair matchups divided by 2
+      map: randomMap
     });
   };
 
@@ -182,8 +163,8 @@ function Unmatched() {
       const player2Data = characterData.find(row => row['Winner'] === player2);
       const player1WinRate = player1Data ? player1Data[player2] : 'N/A';
       const player2WinRate = player2Data ? player2Data[player1] : 'N/A';
-      newPlayers[0] = `${player1} (${player1WinRate}%)`;
-      newPlayers[1] = `${player2} (${player2WinRate}%)`;
+      newPlayers[0] = `${player1} (${player1WinRate})`;
+      newPlayers[1] = `${player2} (${player2WinRate})`;
     }
 
     setMatchup({ ...matchup, players: newPlayers });
@@ -214,28 +195,87 @@ function Unmatched() {
   return (
     <div className="unmatched">
       <h1>⚔️ Unmatched Matchup 🛡️</h1> {/* Added swords and shield emojis */}
-      <div>
-        <label>
-          Number of Players:
-          <input type="number" value={numPlayers} onChange={handleNumPlayersChange} min="2" max="5" />
-        </label>
+      
+      {/* Number of Players Button Group */}
+      <div className="player-count-container">
+        <label>Number of Players:</label>
+        <div className="player-button-group">
+          <button 
+            className={`player-button ${numPlayers === 2 ? 'selected' : ''}`}
+            onClick={() => handleNumPlayersChange(2)}
+          >
+            2
+          </button>
+          <button 
+            className={`player-button ${numPlayers === 3 ? 'selected' : ''}`}
+            onClick={() => handleNumPlayersChange(3)}
+          >
+            3
+          </button>
+          <button 
+            className={`player-button ${numPlayers === 4 ? 'selected' : ''}`}
+            onClick={() => handleNumPlayersChange(4)}
+          >
+            4
+          </button>
+        </div>
       </div>
+      
+      {/* Win Rate Range Sliders - Only visible for 2 players */}
+      {numPlayers === 2 && (
+        <div className="slider-container">
+          <h3>Win Rate Range</h3>
+          <div className="slider-group">
+            <div className="slider-item">
+              <label htmlFor="minWinRate">Minimum Win Rate: {minWinRate}%</label>
+              <input
+                type="range"
+                id="minWinRate"
+                min="0"
+                max="100"
+                value={minWinRate}
+                onChange={(e) => {
+                  const value = Math.min(parseInt(e.target.value), 50);
+                  setMinWinRate(value);
+                  setMaxWinRate(100 - value);
+                }}
+                className="slider"
+              />
+            </div>
+            <div className="slider-item">
+              <label htmlFor="maxWinRate">Maximum Win Rate: {maxWinRate}%</label>
+              <input
+                type="range"
+                id="maxWinRate"
+                min="0"
+                max="100"
+                value={maxWinRate}
+                onChange={(e) => {
+                  const value = Math.max(parseInt(e.target.value), 50);
+                  setMaxWinRate(value);
+                  setMinWinRate(100 - value);
+                }}
+                className="slider"
+              />
+            </div>
+          </div>
+          <div className="matchup-counter">
+            <p>Potential Matchups: <strong>{matchupCount}</strong></p>
+          </div>
+        </div>
+      )}
+
       <div className="generate-button-container">
         <button className="generate-button" onClick={generateMatchup}>Random Matchup</button>
-        <div className="generate-button-group">
-          <button className="generate-button" onClick={generateFairMatchup}>Fair Matchup</button>
-          <button className="generate-button" onClick={generateUnfairMatchup}>Unfair Matchup</button>
-        </div>
+        {numPlayers === 2 && (
+          <button className="generate-button ranged-button" onClick={generateRangedMatchup}>
+            Generate Matchup ({minWinRate}% - {maxWinRate}%)
+          </button>
+        )}
       </div>
       {matchup.players.length > 0 && (
         <div className="matchup-results">
           <h2>Matchup Results</h2>
-          {matchup.fairMatchupCount && (
-            <p>Number of possible fair matchups: {matchup.fairMatchupCount}</p>
-          )}
-          {matchup.unfairMatchupCount && (
-            <p>Number of possible unfair matchups: {matchup.unfairMatchupCount}</p>
-          )}
           <div className="results-grid">
             <div className="results-section">
               <h3>Characters</h3>

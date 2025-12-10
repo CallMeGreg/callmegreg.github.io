@@ -1,6 +1,24 @@
 # [callmegreg.github.io](https://callmegreg.github.io/)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app) and built _almost_ entirely through the use of [Copilot Chat](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot-chat) :rocket:
+This project was built _almost_ entirely through the use of [Copilot Chat](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot-chat) :rocket:
+
+## Tech Stack
+
+- **React 18** - UI framework
+- **Vite** - Build tool and dev server (fast, modern alternative to Create React App)
+- **React Router** - Client-side routing
+- **PapaParse** - CSV parsing for game data
+
+## Development
+
+Start the development server:
+
+```bash
+npm install
+npm run dev
+```
+
+The site will be available at `http://localhost:5173/`
 
 ## Deployment
 
@@ -35,3 +53,11 @@ If you prefer to deploy manually, you can run:
 npm run build
 npx gh-pages -d build
 ```
+
+## Features
+
+### Unmatched Matchup Generator
+- Generate random character matchups for the Unmatched board game
+- Control matchup fairness with adjustable win rate sliders
+- Real-time display of potential matchup count
+- Modern, sleek UI with gradient styling
