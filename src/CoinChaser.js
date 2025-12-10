@@ -19,9 +19,7 @@ function CoinChaser() {
   }, [hasInteracted]);
 
   const handleIframeInteraction = () => {
-    if (!hasInteracted) {
-      setHasInteracted(true);
-    }
+    setHasInteracted(true);
   };
 
   return (
