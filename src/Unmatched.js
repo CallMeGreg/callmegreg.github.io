@@ -12,6 +12,22 @@ function Unmatched() {
   const [selectedMaps, setSelectedMaps] = useState([]);
   const [matchup, setMatchup] = useState({ players: [], map: '' });
   const [characterData, setCharacterData] = useState([]); // State to store parsed character data
+  const [hasInteracted, setHasInteracted] = useState(false);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (hasInteracted) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [hasInteracted]);
 
   useEffect(() => {
     Papa.parse(charactersCSV, {
@@ -41,18 +57,21 @@ function Unmatched() {
   };
 
   const handleCharacterChange = (index) => {
+    setHasInteracted(true);
     const newSelectedCharacters = [...selectedCharacters];
     newSelectedCharacters[index] = !newSelectedCharacters[index];
     setSelectedCharacters(newSelectedCharacters);
   };
 
   const handleMapChange = (index) => {
+    setHasInteracted(true);
     const newSelectedMaps = [...selectedMaps];
     newSelectedMaps[index] = !newSelectedMaps[index];
     setSelectedMaps(newSelectedMaps);
   };
 
   const generateMatchup = () => {
+    setHasInteracted(true);
     const availableCharacters = characters.filter((_, index) => selectedCharacters[index]);
     const availableMaps = maps.filter((_, index) => selectedMaps[index]);
 
@@ -88,6 +107,7 @@ function Unmatched() {
   const maxWinRate = 60; // Maximum win rate
 
   const generateFairMatchup = () => {
+    setHasInteracted(true);
     const availableCharacters = characters.filter((_, index) => selectedCharacters[index]);
     const availableMaps = maps.filter((_, index) => selectedMaps[index]);
 
@@ -129,6 +149,7 @@ function Unmatched() {
   };
 
   const generateUnfairMatchup = () => {
+    setHasInteracted(true);
     const availableCharacters = characters.filter((_, index) => selectedCharacters[index]);
     const availableMaps = maps.filter((_, index) => selectedMaps[index]);
 
@@ -170,6 +191,7 @@ function Unmatched() {
   };
 
   const regeneratePlayer = (index) => {
+    setHasInteracted(true);
     const availableCharacters = characters.filter((_, i) => selectedCharacters[i] && !matchup.players.includes(characters[i]));
     const randomIndex = Math.floor(Math.random() * availableCharacters.length);
     const newPlayers = [...matchup.players];
@@ -190,24 +212,29 @@ function Unmatched() {
   };
 
   const regenerateMap = () => {
+    setHasInteracted(true);
     const availableMaps = maps.filter((_, index) => selectedMaps[index]);
     const randomMap = availableMaps[Math.floor(Math.random() * availableMaps.length)];
     setMatchup({ ...matchup, map: randomMap });
   };
 
   const selectAllCharacters = () => {
+    setHasInteracted(true);
     setSelectedCharacters(characters.map(() => true));
   };
 
   const deselectAllCharacters = () => {
+    setHasInteracted(true);
     setSelectedCharacters(characters.map(() => false));
   };
 
   const selectAllMaps = () => {
+    setHasInteracted(true);
     setSelectedMaps(maps.map(() => true));
   };
 
   const deselectAllMaps = () => {
+    setHasInteracted(true);
     setSelectedMaps(maps.map(() => false));
   };
 

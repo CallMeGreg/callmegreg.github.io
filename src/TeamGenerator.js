@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './TeamGenerator.css';
 
 function TeamGenerator() {
@@ -8,10 +8,27 @@ function TeamGenerator() {
   const [showTeams, setShowTeams] = useState(false);
   const [usePlaceholders, setUsePlaceholders] = useState(false);
   const [useGeckoNames, setUseGeckoNames] = useState(false); // new state for checkbox
+  const [hasInteracted, setHasInteracted] = useState(false);
 
   const leopardGeckoNames = ['Leo', 'Luna', 'Ziggy', 'Gizmo', 'Spike', 'Rex', 'Milo', 'Cleo', 'Jax', 'Nova', 'Echo', 'Onyx', 'Jade', 'Ruby', 'Sapphire', 'Topaz', 'Opal', 'Amber', 'Jasper', 'Emerald', 'Buddy', 'Cinnamon', 'Dexter', 'Finn', 'Gatsby', 'Hazel', 'Ivy', 'Jasmine', 'Koda', 'Loki', 'Mango', 'Nala', 'Oscar', 'Penny', 'Quincy', 'Riley', 'Sage', 'Toby', 'Ursula', 'Violet', 'Willow', 'Xander', 'Yara', 'Zara', 'Charmello'];
 
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (hasInteracted) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [hasInteracted]);
+
   const handleAddPlayer = () => {
+    setHasInteracted(true);
     let newPlayerName;
     if (useGeckoNames) {
       const availableNames = leopardGeckoNames.filter(name => !players.includes(name));
@@ -29,12 +46,14 @@ function TeamGenerator() {
   };
 
   const handleDeletePlayer = (index) => {
+    setHasInteracted(true);
     const newPlayers = [...players];
     newPlayers.splice(index, 1);
     setPlayers(newPlayers);
   };
 
   const handlePlayerChange = (index, value) => {
+    setHasInteracted(true);
     const newPlayers = [...players];
     newPlayers[index] = value;
     setPlayers(newPlayers);
@@ -45,6 +64,7 @@ function TeamGenerator() {
   };
 
   const handleGenerateTeams = () => {
+    setHasInteracted(true);
     const shuffledPlayers = players.sort(() => 0.5 - Math.random());
     const teamSize = Math.floor(shuffledPlayers.length / teams);
     const remainingPlayers = shuffledPlayers.slice(teams * teamSize);
