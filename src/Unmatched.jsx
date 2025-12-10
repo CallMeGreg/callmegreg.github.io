@@ -12,8 +12,8 @@ function Unmatched() {
   const [selectedMaps, setSelectedMaps] = useState([]);
   const [matchup, setMatchup] = useState({ players: [], map: '' });
   const [characterData, setCharacterData] = useState([]); // State to store parsed character data
-  const [minWinRate, setMinWinRate] = useState(40); // Minimum win rate for slider
-  const [maxWinRate, setMaxWinRate] = useState(60); // Maximum win rate for slider
+  const [minWinRate, setMinWinRate] = useState(0); // Minimum win rate for slider
+  const [maxWinRate, setMaxWinRate] = useState(100); // Maximum win rate for slider
   const [matchupCount, setMatchupCount] = useState(0); // Number of potential matchups
 
   useEffect(() => {
@@ -61,8 +61,8 @@ function Unmatched() {
     setMatchupCount(Math.floor(matchups.length / 2)); // Divide by 2 to avoid counting duplicates
   }, [minWinRate, maxWinRate, selectedCharacters, characterData, characters]);
 
-  const handleNumPlayersChange = (e) => {
-    setNumPlayers(e.target.value);
+  const handleNumPlayersChange = (num) => {
+    setNumPlayers(num);
   };
 
   const handleCharacterChange = (index) => {
@@ -193,62 +193,89 @@ function Unmatched() {
   return (
     <div className="unmatched">
       <h1>⚔️ Unmatched Matchup 🛡️</h1> {/* Added swords and shield emojis */}
-      <div>
-        <label>
-          Number of Players:
-          <input type="number" value={numPlayers} onChange={handleNumPlayersChange} min="2" max="5" />
-        </label>
+      
+      {/* Number of Players Button Group */}
+      <div className="player-count-container">
+        <label>Number of Players:</label>
+        <div className="player-button-group">
+          <button 
+            className={`player-button ${numPlayers === 2 ? 'selected' : ''}`}
+            onClick={() => handleNumPlayersChange(2)}
+          >
+            2
+          </button>
+          <button 
+            className={`player-button ${numPlayers === 3 ? 'selected' : ''}`}
+            onClick={() => handleNumPlayersChange(3)}
+          >
+            3
+          </button>
+          <button 
+            className={`player-button ${numPlayers === 4 ? 'selected' : ''}`}
+            onClick={() => handleNumPlayersChange(4)}
+          >
+            4
+          </button>
+        </div>
       </div>
       
-      {/* Win Rate Range Sliders */}
-      <div className="slider-container">
-        <h3>Win Rate Range</h3>
-        <div className="slider-group">
-          <div className="slider-item">
-            <label htmlFor="minWinRate">Minimum Win Rate: {minWinRate}%</label>
-            <input
-              type="range"
-              id="minWinRate"
-              min="0"
-              max="100"
-              value={minWinRate}
-              onChange={(e) => {
-                const value = parseInt(e.target.value);
-                if (value <= maxWinRate) {
+      {/* Win Rate Range Sliders - Only visible for 2 players */}
+      {numPlayers === 2 && (
+        <div className="slider-container">
+          <h3>Win Rate Range</h3>
+          <div className="slider-group">
+            <div className="slider-item">
+              <label htmlFor="minWinRate">Minimum Win Rate: {minWinRate}%</label>
+              <input
+                type="range"
+                id="minWinRate"
+                min="0"
+                max="100"
+                value={minWinRate}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value);
                   setMinWinRate(value);
-                }
-              }}
-              className="slider"
-            />
-          </div>
-          <div className="slider-item">
-            <label htmlFor="maxWinRate">Maximum Win Rate: {maxWinRate}%</label>
-            <input
-              type="range"
-              id="maxWinRate"
-              min="0"
-              max="100"
-              value={maxWinRate}
-              onChange={(e) => {
-                const value = parseInt(e.target.value);
-                if (value >= minWinRate) {
+                  // Move max slider down when min moves up
+                  if (value > maxWinRate) {
+                    setMaxWinRate(value);
+                  }
+                }}
+                className="slider"
+              />
+            </div>
+            <div className="slider-item">
+              <label htmlFor="maxWinRate">Maximum Win Rate: {maxWinRate}%</label>
+              <input
+                type="range"
+                id="maxWinRate"
+                min="0"
+                max="100"
+                value={maxWinRate}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value);
                   setMaxWinRate(value);
-                }
-              }}
-              className="slider"
-            />
+                  // Move min slider down when max moves down
+                  if (value < minWinRate) {
+                    setMinWinRate(value);
+                  }
+                }}
+                className="slider"
+              />
+            </div>
+          </div>
+          <div className="matchup-counter">
+            <p>Potential Matchups: <strong>{matchupCount}</strong></p>
           </div>
         </div>
-        <div className="matchup-counter">
-          <p>Potential Matchups: <strong>{matchupCount}</strong></p>
-        </div>
-      </div>
+      )}
 
       <div className="generate-button-container">
         <button className="generate-button" onClick={generateMatchup}>Random Matchup</button>
-        <button className="generate-button ranged-button" onClick={generateRangedMatchup}>
-          Generate Matchup ({minWinRate}% - {maxWinRate}%)
-        </button>
+        {numPlayers === 2 && (
+          <button className="generate-button ranged-button" onClick={generateRangedMatchup}>
+            Generate Matchup ({minWinRate}% - {maxWinRate}%)
+          </button>
+        )}
       </div>
       {matchup.players.length > 0 && (
         <div className="matchup-results">
