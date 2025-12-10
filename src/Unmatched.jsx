@@ -99,8 +99,8 @@ function Unmatched() {
       const player2Data = characterData.find(row => row['Winner'] === player2);
       const player1WinRate = player1Data ? player1Data[player2] : 'N/A';
       const player2WinRate = player2Data ? player2Data[player1] : 'N/A';
-      players[0] = `${player1} (${player1WinRate}%)`;
-      players[1] = `${player2} (${player2WinRate}%)`;
+      players[0] = `${player1} (${player1WinRate})`;
+      players[1] = `${player2} (${player2WinRate})`;
     }
 
     const randomMap = availableMaps[Math.floor(Math.random() * availableMaps.length)];
@@ -134,15 +134,17 @@ function Unmatched() {
     const randomIndex = Math.floor(Math.random() * rangedMatchups.length);
     const selectedMatchup = rangedMatchups[randomIndex];
 
-    const player1WinRate = selectedMatchup.value;
-    const player2WinRate = parseFloat(characterData.find(row => row['Winner'] === selectedMatchup.colCharacter)[selectedMatchup.rowCharacter]);
+    const player1Data = characterData.find(row => row['Winner'] === selectedMatchup.rowCharacter);
+    const player2Data = characterData.find(row => row['Winner'] === selectedMatchup.colCharacter);
+    const player1WinRate = player1Data ? player1Data[selectedMatchup.colCharacter] : 'N/A';
+    const player2WinRate = player2Data ? player2Data[selectedMatchup.rowCharacter] : 'N/A';
 
     const randomMap = availableMaps[Math.floor(Math.random() * availableMaps.length)];
 
     setMatchup({
       players: [
-        `${selectedMatchup.rowCharacter} (${player1WinRate}%)`,
-        `${selectedMatchup.colCharacter} (${player2WinRate}%)`
+        `${selectedMatchup.rowCharacter} (${player1WinRate})`,
+        `${selectedMatchup.colCharacter} (${player2WinRate})`
       ],
       map: randomMap
     });
@@ -161,8 +163,8 @@ function Unmatched() {
       const player2Data = characterData.find(row => row['Winner'] === player2);
       const player1WinRate = player1Data ? player1Data[player2] : 'N/A';
       const player2WinRate = player2Data ? player2Data[player1] : 'N/A';
-      newPlayers[0] = `${player1} (${player1WinRate}%)`;
-      newPlayers[1] = `${player2} (${player2WinRate}%)`;
+      newPlayers[0] = `${player1} (${player1WinRate})`;
+      newPlayers[1] = `${player2} (${player2WinRate})`;
     }
 
     setMatchup({ ...matchup, players: newPlayers });
@@ -233,12 +235,9 @@ function Unmatched() {
                 max="100"
                 value={minWinRate}
                 onChange={(e) => {
-                  const value = parseInt(e.target.value);
+                  const value = Math.min(parseInt(e.target.value), 50);
                   setMinWinRate(value);
-                  // Move max slider down when min moves up
-                  if (value > maxWinRate) {
-                    setMaxWinRate(value);
-                  }
+                  setMaxWinRate(100 - value);
                 }}
                 className="slider"
               />
@@ -252,12 +251,9 @@ function Unmatched() {
                 max="100"
                 value={maxWinRate}
                 onChange={(e) => {
-                  const value = parseInt(e.target.value);
+                  const value = Math.max(parseInt(e.target.value), 50);
                   setMaxWinRate(value);
-                  // Move min slider down when max moves down
-                  if (value < minWinRate) {
-                    setMinWinRate(value);
-                  }
+                  setMinWinRate(100 - value);
                 }}
                 className="slider"
               />
