@@ -6,14 +6,16 @@ import Unmatched from './Unmatched'; // Import Unmatched component
 import './index.css';
 import CoinChaser from './CoinChaser';
 
+// Move quotes array outside the Home component
+const quotes = [
+  "Randomness is the spice of life.",
+  "Embrace the chaos of randomness.",
+  "In randomness, there is order.",
+  "Randomness is the true nature of the universe.",
+  "Life is a series of random events."
+];
+
 function Home() {
-  const quotes = [
-    "Randomness is the spice of life.",
-    "Embrace the chaos of randomness.",
-    "In randomness, there is order.",
-    "Randomness is the true nature of the universe.",
-    "Life is a series of random events."
-  ];
   const [quote, setQuote] = useState('');
 
   useEffect(() => {
