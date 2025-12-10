@@ -18,7 +18,7 @@ function Unmatched() {
       download: true,
       header: true, // Enable header parsing
       complete: (result) => {
-        const characterNames = result.data.map(row => row['category']); // Adjust to fetch from the "category" column
+        const characterNames = result.data.map(row => row['Winner']).filter(name => name); // Fetch from the "Winner" column and filter out empty values
         setCharacters(characterNames);
         setSelectedCharacters(characterNames.map(() => true));
         setCharacterData(result.data); // Store parsed character data
@@ -70,8 +70,8 @@ function Unmatched() {
     if (numPlayers === 2) {
       const player1 = players[0].split(' (')[0]; // Extract character name without win rate
       const player2 = players[1].split(' (')[0]; // Extract character name without win rate
-      const player1Data = characterData.find(row => row['category'] === player1);
-      const player2Data = characterData.find(row => row['category'] === player2);
+      const player1Data = characterData.find(row => row['Winner'] === player1);
+      const player2Data = characterData.find(row => row['Winner'] === player2);
       const player1WinRate = player1Data ? player1Data[player2] : 'N/A';
       const player2WinRate = player2Data ? player2Data[player1] : 'N/A';
       players[0] = `${player1} (${player1WinRate}%)`;
@@ -94,7 +94,7 @@ function Unmatched() {
     const fairMatchups = [];
 
     characterData.forEach(row => {
-      const rowCharacter = row['category'];
+      const rowCharacter = row['Winner'];
       if (availableCharacters.includes(rowCharacter)) {
         availableCharacters.forEach(colCharacter => {
           const winRate = row[colCharacter];
@@ -114,7 +114,7 @@ function Unmatched() {
     const selectedMatchup = fairMatchups[randomIndex];
 
     const player1WinRate = selectedMatchup.value;
-    const player2WinRate = characterData.find(row => row['category'] === selectedMatchup.colCharacter)[selectedMatchup.rowCharacter];
+    const player2WinRate = characterData.find(row => row['Winner'] === selectedMatchup.colCharacter)[selectedMatchup.rowCharacter];
 
     const randomMap = availableMaps[Math.floor(Math.random() * availableMaps.length)];
 
@@ -135,7 +135,7 @@ function Unmatched() {
     const unfairMatchups = [];
 
     characterData.forEach(row => {
-      const rowCharacter = row['category'];
+      const rowCharacter = row['Winner'];
       if (availableCharacters.includes(rowCharacter)) {
         availableCharacters.forEach(colCharacter => {
           const winRate = row[colCharacter];
@@ -155,7 +155,7 @@ function Unmatched() {
     const selectedMatchup = unfairMatchups[randomIndex];
 
     const player1WinRate = selectedMatchup.value;
-    const player2WinRate = characterData.find(row => row['category'] === selectedMatchup.colCharacter)[selectedMatchup.rowCharacter];
+    const player2WinRate = characterData.find(row => row['Winner'] === selectedMatchup.colCharacter)[selectedMatchup.rowCharacter];
 
     const randomMap = availableMaps[Math.floor(Math.random() * availableMaps.length)];
 
@@ -178,8 +178,8 @@ function Unmatched() {
     if (numPlayers === 2) {
       const player1 = newPlayers[0].split(' (')[0]; // Extract character name without win rate
       const player2 = newPlayers[1].split(' (')[0]; // Extract character name without win rate
-      const player1Data = characterData.find(row => row['category'] === player1);
-      const player2Data = characterData.find(row => row['category'] === player2);
+      const player1Data = characterData.find(row => row['Winner'] === player1);
+      const player2Data = characterData.find(row => row['Winner'] === player2);
       const player1WinRate = player1Data ? player1Data[player2] : 'N/A';
       const player2WinRate = player2Data ? player2Data[player1] : 'N/A';
       newPlayers[0] = `${player1} (${player1WinRate}%)`;
