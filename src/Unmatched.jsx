@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import './Unmatched.css';
 import Papa from 'papaparse';
 
+const THRESHOLD = 10; // Minimum threshold value for valid matchups
+
 function Unmatched() {
   const [numPlayers, setNumPlayers] = useState(2); // Default number of players set to 2
   const [characters, setCharacters] = useState([]);
@@ -42,7 +44,6 @@ function Unmatched() {
     if (characterData.length === 0) return;
 
     const availableCharacters = characters.filter((_, index) => selectedCharacters[index]);
-    const threshold = 10; // Define the threshold value
     const matchups = [];
 
     characterData.forEach(row => {
@@ -50,7 +51,7 @@ function Unmatched() {
       if (availableCharacters.includes(rowCharacter)) {
         availableCharacters.forEach(colCharacter => {
           const winRate = parseFloat(row[colCharacter]);
-          if (!isNaN(winRate) && winRate >= threshold && winRate >= minWinRate && winRate <= maxWinRate && rowCharacter !== colCharacter) {
+          if (!isNaN(winRate) && winRate >= THRESHOLD && winRate >= minWinRate && winRate <= maxWinRate && rowCharacter !== colCharacter) {
             matchups.push({ rowCharacter, colCharacter, value: winRate });
           }
         });
@@ -107,8 +108,6 @@ function Unmatched() {
     setMatchup({ players, map: randomMap });
   };
 
-  const threshold = 10; // Define the threshold value
-
   const generateRangedMatchup = () => {
     const availableCharacters = characters.filter((_, index) => selectedCharacters[index]);
     const availableMaps = maps.filter((_, index) => selectedMaps[index]);
@@ -120,7 +119,7 @@ function Unmatched() {
       if (availableCharacters.includes(rowCharacter)) {
         availableCharacters.forEach(colCharacter => {
           const winRate = parseFloat(row[colCharacter]);
-          if (!isNaN(winRate) && winRate >= threshold && winRate >= minWinRate && winRate <= maxWinRate && rowCharacter !== colCharacter) {
+          if (!isNaN(winRate) && winRate >= THRESHOLD && winRate >= minWinRate && winRate <= maxWinRate && rowCharacter !== colCharacter) {
             rangedMatchups.push({ rowCharacter, colCharacter, value: winRate });
           }
         });
