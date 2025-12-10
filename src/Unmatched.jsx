@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Unmatched.css';
 import Papa from 'papaparse';
-import charactersCSV from './UnmatchedCharacters.csv';
-import mapsCSV from './UnmatchedMaps.csv';
 
 function Unmatched() {
   const [numPlayers, setNumPlayers] = useState(2); // Default number of players set to 2
@@ -14,7 +12,7 @@ function Unmatched() {
   const [characterData, setCharacterData] = useState([]); // State to store parsed character data
 
   useEffect(() => {
-    Papa.parse(charactersCSV, {
+    Papa.parse('/UnmatchedCharacters.csv', {
       download: true,
       header: true, // Enable header parsing
       complete: (result) => {
@@ -25,7 +23,7 @@ function Unmatched() {
       }
     });
 
-    Papa.parse(mapsCSV, {
+    Papa.parse('/UnmatchedMaps.csv', {
       download: true,
       header: true, // Enable header parsing
       complete: (result) => {
