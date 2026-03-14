@@ -8,6 +8,7 @@ function TeamGenerator() {
   const [showTeams, setShowTeams] = useState(false);
   const [usePlaceholders, setUsePlaceholders] = useState(false);
   const [useGeckoNames, setUseGeckoNames] = useState(false); // new state for checkbox
+  const [pasteText, setPasteText] = useState('');
 
   const leopardGeckoNames = ['Leo', 'Luna', 'Ziggy', 'Gizmo', 'Spike', 'Rex', 'Milo', 'Cleo', 'Jax', 'Nova', 'Echo', 'Onyx', 'Jade', 'Ruby', 'Sapphire', 'Topaz', 'Opal', 'Amber', 'Jasper', 'Emerald', 'Buddy', 'Cinnamon', 'Dexter', 'Finn', 'Gatsby', 'Hazel', 'Ivy', 'Jasmine', 'Koda', 'Loki', 'Mango', 'Nala', 'Oscar', 'Penny', 'Quincy', 'Riley', 'Sage', 'Toby', 'Ursula', 'Violet', 'Willow', 'Xander', 'Yara', 'Zara', 'Charmello'];
 
@@ -68,6 +69,17 @@ function TeamGenerator() {
     setUseGeckoNames(event.target.checked);
   };
 
+  const handleImportPlayers = () => {
+    const names = pasteText
+      .split(/[\n,]+/)
+      .map(name => name.trim())
+      .filter(name => name.length > 0);
+    if (names.length > 0) {
+      setPlayers([...players, ...names]);
+      setPasteText('');
+    }
+  };
+
   return (
     <div className="team-generator">
       <h1>Random Team Generator</h1>
@@ -99,6 +111,16 @@ function TeamGenerator() {
           checked={useGeckoNames}
           onChange={handleUseGeckoNamesChange}
         />
+      </div>
+      <div className="paste-container">
+        <textarea
+          className="paste-textarea"
+          placeholder="Paste player names here (one per line or comma-separated)"
+          value={pasteText}
+          onChange={(event) => setPasteText(event.target.value)}
+          rows={4}
+        />
+        <button onClick={handleImportPlayers}>Import Players</button>
       </div>
       <button onClick={handleAddPlayer}>Add Player</button>
       {players.map((player, index) => (
