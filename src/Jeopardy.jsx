@@ -443,6 +443,18 @@ export default function Jeopardy() {
   const [visitedQuestions, setVisitedQuestions] = useState(() => getStorageItem('jeopardy.visitedQuestions', []));
   const [currentQuestion, setCurrentQuestion] = useState(() => getStorageItem('jeopardy.currentQuestion', null));
 
+  // Allow page-level scrolling by overriding body constraints from other applet CSS
+  useEffect(() => {
+    document.body.style.height = 'auto';
+    document.body.style.minHeight = '100vh';
+    document.body.style.overflow = 'auto';
+    return () => {
+      document.body.style.height = '';
+      document.body.style.minHeight = '';
+      document.body.style.overflow = '';
+    };
+  }, []);
+
   // Persist all state to localStorage
   useEffect(() => { setStorageItem('jeopardy.gamePhase', gamePhase); }, [gamePhase]);
   useEffect(() => { setStorageItem('jeopardy.numRounds', numRounds); }, [numRounds]);
