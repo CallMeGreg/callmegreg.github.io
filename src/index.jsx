@@ -3,8 +3,9 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import TeamGenerator from './TeamGenerator';
 import Unmatched from './Unmatched'; // Import Unmatched component
-import './index.css';
 import CoinChaser from './CoinChaser';
+import Jeopardy from './Jeopardy';
+import './index.css';
 
 // Move quotes array outside the Home component
 const quotes = [
@@ -39,6 +40,10 @@ function Home() {
           <img src="/images/coin-chase.png" alt="Coin Chaser" />
           <span>Coin Chaser</span>
         </Link>
+        <Link to="/jeopardy" className="button">
+          <img src="/images/jeopardy.svg" alt="Jeopardy!" />
+          <span>Jeopardy!</span>
+        </Link>
       </div>
     </div>
   );
@@ -53,6 +58,7 @@ root.render(
         <Route path="/team-generator" element={<TeamGenerator />} />
         <Route path="/unmatched-matchup" element={<Unmatched />} />
         <Route path="/godot-game" element={<CoinChaser />} />
+        <Route path="/jeopardy" element={<Jeopardy />} />
       </Routes>
     </Router>
   </React.StrictMode>
