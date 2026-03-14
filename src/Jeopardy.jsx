@@ -406,12 +406,15 @@ function ResultsScreen({ teams, scores, onReset }) {
   }, []);
 
   const sorted = [...teams].sort((a, b) => scores[b] - scores[a]);
-  const winner = sorted[0];
+  const topScore = scores[sorted[0]];
+  const winners = sorted.filter(t => scores[t] === topScore);
 
   return (
     <div className="jeopardy-results-screen">
       <h1>🏆 Game Over! 🏆</h1>
-      <h2 className="winner-name">{winner} wins!</h2>
+      <h2 className="winner-name">
+        {winners.length > 1 ? `It's a tie! ${winners.join(' & ')}` : `${winners[0]} wins!`}
+      </h2>
       <div className="final-scores">
         {sorted.map((team, i) => (
           <div key={team} className={`final-score-row ${i === 0 ? 'winner' : ''}`}>
