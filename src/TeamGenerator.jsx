@@ -1,14 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './TeamGenerator.css';
 
 function TeamGenerator() {
-  const [players, setPlayers] = useState([]);
-  const [teams, setTeams] = useState(2);
-  const [teamPlayers, setTeamPlayers] = useState([]);
-  const [showTeams, setShowTeams] = useState(false);
+  const [players, setPlayers] = useState(() => {
+    const saved = localStorage.getItem('teamGenerator.players');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [teams, setTeams] = useState(() => {
+    const saved = localStorage.getItem('teamGenerator.teams');
+    return saved ? JSON.parse(saved) : 2;
+  });
+  const [teamPlayers, setTeamPlayers] = useState(() => {
+    const saved = localStorage.getItem('teamGenerator.teamPlayers');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [showTeams, setShowTeams] = useState(() => {
+    const saved = localStorage.getItem('teamGenerator.showTeams');
+    return saved ? JSON.parse(saved) : false;
+  });
   const [usePlaceholders, setUsePlaceholders] = useState(false);
-  const [useGeckoNames, setUseGeckoNames] = useState(false); // new state for checkbox
+  const [useGeckoNames, setUseGeckoNames] = useState(false);
   const [pasteText, setPasteText] = useState('');
+
+  useEffect(() => {
+    localStorage.setItem('teamGenerator.players', JSON.stringify(players));
+  }, [players]);
+
+  useEffect(() => {
+    localStorage.setItem('teamGenerator.teams', JSON.stringify(teams));
+  }, [teams]);
+
+  useEffect(() => {
+    localStorage.setItem('teamGenerator.teamPlayers', JSON.stringify(teamPlayers));
+  }, [teamPlayers]);
+
+  useEffect(() => {
+    localStorage.setItem('teamGenerator.showTeams', JSON.stringify(showTeams));
+  }, [showTeams]);
 
   const leopardGeckoNames = ['Leo', 'Luna', 'Ziggy', 'Gizmo', 'Spike', 'Rex', 'Milo', 'Cleo', 'Jax', 'Nova', 'Echo', 'Onyx', 'Jade', 'Ruby', 'Sapphire', 'Topaz', 'Opal', 'Amber', 'Jasper', 'Emerald', 'Buddy', 'Cinnamon', 'Dexter', 'Finn', 'Gatsby', 'Hazel', 'Ivy', 'Jasmine', 'Koda', 'Loki', 'Mango', 'Nala', 'Oscar', 'Penny', 'Quincy', 'Riley', 'Sage', 'Toby', 'Ursula', 'Violet', 'Willow', 'Xander', 'Yara', 'Zara', 'Charmello'];
 
@@ -80,80 +108,114 @@ function TeamGenerator() {
     }
   };
 
+  const handleReset = () => {
+    if (window.confirm('Are you sure you want to reset? This will clear all players and teams.')) {
+      localStorage.removeItem('teamGenerator.players');
+      localStorage.removeItem('teamGenerator.teams');
+      localStorage.removeItem('teamGenerator.teamPlayers');
+      localStorage.removeItem('teamGenerator.showTeams');
+      setPlayers([]);
+      setTeams(2);
+      setTeamPlayers([]);
+      setShowTeams(false);
+      setUsePlaceholders(false);
+      setUseGeckoNames(false);
+      setPasteText('');
+    }
+  };
+
   return (
     <div className="team-generator">
-      <h1>Random Team Generator</h1>
-      <label htmlFor="teams">Number of Teams:</label>
-      <input
-        type="number"
-        id="teams"
-        name="teams"
-        min="2"
-        value={teams}
-        onChange={handleTeamChange}
-      />
-      <div className="checkbox-container">
-        <label htmlFor="usePlaceholders">Autofill player names?</label>
-        <input
-          type="checkbox"
-          id="usePlaceholders"
-          name="usePlaceholders"
-          checked={usePlaceholders}
-          onChange={handleUsePlaceholdersChange}
-        />
+      <div className="tg-header">
+        <h1>Random Team Generator</h1>
+        <button className="tg-reset-btn" onClick={handleReset}>Reset</button>
       </div>
-      <div className="checkbox-container"> {/* new checkbox container */}
-        <label htmlFor="useGeckoNames">Autofill with leopard gecko names?</label>
-        <input
-          type="checkbox"
-          id="useGeckoNames"
-          name="useGeckoNames"
-          checked={useGeckoNames}
-          onChange={handleUseGeckoNamesChange}
-        />
-      </div>
-      <div className="paste-container">
-        <textarea
-          className="paste-textarea"
-          placeholder="Paste player names here (one per line or comma-separated)"
-          value={pasteText}
-          onChange={(event) => setPasteText(event.target.value)}
-          rows={4}
-        />
-        <button onClick={handleImportPlayers}>Import Players</button>
-      </div>
-      <button onClick={handleAddPlayer}>Add Player</button>
-      {players.map((player, index) => (
-        <div key={index}>
-          <input
-            type="text"
-            value={player}
-            onChange={(event) => handlePlayerChange(index, event.target.value)}
-          />
-          <button onClick={() => handleDeletePlayer(index)}>Delete</button>
-        </div>
-      ))}
-      <button onClick={handleGenerateTeams}>Generate Teams</button>
-      {showTeams && (
-        <table>
-          <thead>
-            <tr>
-              {Array.from({ length: teams }, (_, i) => (
-                <th key={i}>Team {i + 1}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {Array.from({ length: Math.max(...teamPlayers.map((team) => team.length)) }, (_, i) => (
-              <tr key={i}>
-                {teamPlayers.map((team, j) => (
-                  <td key={j}>{team[i] || ''}</td>
-                ))}
-              </tr>
+      <div className="tg-main">
+        <div className="tg-panel tg-left">
+          <h2>Players ({players.length})</h2>
+          <div className="tg-controls">
+            <div className="tg-team-count">
+              <label htmlFor="teams">Number of Teams:</label>
+              <input
+                type="number"
+                id="teams"
+                name="teams"
+                min="2"
+                value={teams}
+                onChange={handleTeamChange}
+              />
+            </div>
+            <div className="tg-checkboxes">
+              <div className="checkbox-container">
+                <input
+                  type="checkbox"
+                  id="usePlaceholders"
+                  name="usePlaceholders"
+                  checked={usePlaceholders}
+                  onChange={handleUsePlaceholdersChange}
+                />
+                <label htmlFor="usePlaceholders">Autofill player names</label>
+              </div>
+              <div className="checkbox-container">
+                <input
+                  type="checkbox"
+                  id="useGeckoNames"
+                  name="useGeckoNames"
+                  checked={useGeckoNames}
+                  onChange={handleUseGeckoNamesChange}
+                />
+                <label htmlFor="useGeckoNames">Leopard gecko names</label>
+              </div>
+            </div>
+          </div>
+          <div className="paste-container">
+            <textarea
+              className="paste-textarea"
+              placeholder="Paste names (one per line or comma-separated)"
+              value={pasteText}
+              onChange={(event) => setPasteText(event.target.value)}
+              rows={3}
+            />
+            <button onClick={handleImportPlayers}>Import</button>
+          </div>
+          <div className="tg-player-list">
+            {players.map((player, index) => (
+              <div className="tg-player-row" key={index}>
+                <input
+                  type="text"
+                  value={player}
+                  onChange={(event) => handlePlayerChange(index, event.target.value)}
+                  placeholder={`Player ${index + 1}`}
+                />
+                <button className="tg-delete-btn" onClick={() => handleDeletePlayer(index)}>✕</button>
+              </div>
             ))}
-          </tbody>
-        </table>
-      )}
+          </div>
+          <div className="tg-actions">
+            <button onClick={handleAddPlayer}>+ Add Player</button>
+            <button className="tg-generate-btn" onClick={handleGenerateTeams}>Generate Teams</button>
+          </div>
+        </div>
+        <div className="tg-panel tg-right">
+          <h2>Teams</h2>
+          {showTeams ? (
+            <div className="tg-teams-grid">
+              {teamPlayers.map((team, i) => (
+                <div className="tg-team-card" key={i}>
+                  <h3>Team {i + 1}</h3>
+                  <ul>
+                    {team.map((player, j) => (
+                      <li key={j}>{player}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="tg-placeholder-text">Add players and click "Generate Teams" to see results here.</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
