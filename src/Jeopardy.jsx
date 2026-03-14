@@ -213,7 +213,7 @@ function BoardScreen({ roundData, values, currentRound, teams, scores, visitedQu
         <h1>Round {currentRound}</h1>
         <div className="board-actions">
           {isLastRound && hasFinalJeopardy && (
-            <button className="final-jeopardy-btn" onClick={onFinalJeopardy}>Final Jeopardy!</button>
+            <button className="final-jeopardy-btn" onClick={() => onFinalJeopardy()}>Final Jeopardy!</button>
           )}
           {!isLastRound && (
             <button className="next-round-btn" onClick={onAdvanceRound}>Next Round →</button>
