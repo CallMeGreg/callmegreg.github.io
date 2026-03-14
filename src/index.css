@@ -14,31 +14,36 @@ code {
 
 .home {
   text-align: center;
-  padding: 0 40px;
+  padding: 20px 40px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  box-sizing: border-box;
 }
 
 .button-container {
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
   margin-top: 20px;
-  flex-wrap: wrap;
+  flex: 1;
+  align-content: center;
 }
 
 .button {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   text-decoration: none;
   color: white;
 }
 
 .button img {
-  width: 200px;
-  height: 200px;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
-  min-width: 50px;
-  min-height: 50px;
 }
 
 .button span {
