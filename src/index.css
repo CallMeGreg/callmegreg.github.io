@@ -17,7 +17,7 @@ code {
   padding: 20px 40px;
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100vh;
   box-sizing: border-box;
 }
 
@@ -44,8 +44,6 @@ code {
   height: auto;
   aspect-ratio: 1 / 1;
   object-fit: cover;
-  min-width: 50px;
-  min-height: 50px;
 }
 
 .button span {
