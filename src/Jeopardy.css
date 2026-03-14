@@ -90,6 +90,8 @@
   flex-direction: column;
   gap: 8px;
   margin-top: 10px;
+  max-height: 240px;
+  overflow-y: auto;
 }
 .team-names input {
   padding: 8px 12px;
