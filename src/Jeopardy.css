@@ -11,14 +11,16 @@
   padding: 20px;
   color: #fff;
   font-family: sans-serif;
+  position: relative;
 }
 
 .jeopardy-home-link {
-  align-self: flex-start;
+  position: absolute;
+  top: 20px;
+  left: 20px;
   color: #7ec8e3;
   text-decoration: none;
   font-size: 16px;
-  margin-bottom: 10px;
 }
 .jeopardy-home-link:hover { text-decoration: underline; }
 
@@ -229,7 +231,11 @@
 .board-tile.visited {
   background: #2d2d2d;
   color: #555;
-  cursor: default;
+  cursor: pointer;
+}
+.board-tile.visited:hover {
+  background: #3a3a3a;
+  transform: scale(1.03);
 }
 
 /* ─── Question Screen ─── */

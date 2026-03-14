@@ -146,7 +146,7 @@ function SetupScreen({ onStartGame }) {
   return (
     <div className="jeopardy-setup">
       <Link to="/" className="jeopardy-home-link">← Home</Link>
-      <h1>Jeopardy! Setup</h1>
+      <h1>Jeopardy!</h1>
 
       <section className="setup-section">
         <h2>Rounds</h2>
@@ -248,10 +248,9 @@ function BoardScreen({ roundData, values, currentRound, teams, scores, visitedQu
               <button
                 key={qid}
                 className={`board-tile ${visited ? 'visited' : ''}`}
-                disabled={visited}
                 onClick={() => onSelectQuestion(colIdx, rowIdx, qid)}
               >
-                {visited ? '' : `$${value}`}
+                ${value}
               </button>
             );
           })
