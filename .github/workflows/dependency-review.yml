@@ -27,6 +27,8 @@ jobs:
   dependency-review:
     runs-on: ubuntu-latest
     steps:
+      # TODO: Pin actions to full commit SHAs for supply chain security.
+      # e.g. actions/checkout@<sha>, actions/dependency-review-action@<sha>
       - name: 'Checkout repository'
         uses: actions/checkout@v5
       - name: 'Dependency Review'
