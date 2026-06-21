@@ -16,6 +16,12 @@ function Unmatched() {
   const [maxWinRate, setMaxWinRate] = useState(100); // Maximum win rate for slider
   const [matchupCount, setMatchupCount] = useState(0); // Number of potential matchups
 
+  // Scope the page-level body styles to this route only so they don't leak to other routes
+  useEffect(() => {
+    document.body.classList.add('unmatched-page');
+    return () => document.body.classList.remove('unmatched-page');
+  }, []);
+
   useEffect(() => {
     Papa.parse('/UnmatchedCharacters.csv', {
       download: true,
