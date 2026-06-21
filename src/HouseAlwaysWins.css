@@ -1,0 +1,20 @@
+.house-always-wins {
+  height: 100vh;
+  width: 100vw;
+  box-sizing: border-box;
+  padding-bottom: 0;
+}
+
+.house-always-wins iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+/* Larger bottom border on mobile devices */
+@media (max-width: 768px) {
+  .house-always-wins {
+    padding-bottom: 80px;
+  }
+}
