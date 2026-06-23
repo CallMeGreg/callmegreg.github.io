@@ -11,6 +11,8 @@ const STORAGE = {
   gaveUp: 'wubdle.gaveUp',
   typeAssist: 'wubdle.typeAssist',
   seeded: 'wubdle.seeded',
+  isDaily: 'wubdle.isDaily',
+  dailyDone: 'wubdle.dailyDone',
 };
 
 const MEMBER_ORDER = ['Solo', 'Duo', 'Trio', 'Quartet', 'Quintet', 'Collective'];
@@ -49,6 +51,42 @@ function mulberry32(a) {
 
 function makeSeed() {
   return Math.random().toString(36).slice(2, 8).toUpperCase();
+}
+
+/* Today's date in US Eastern time, formatted as YYMMDD — the daily seed. */
+function getEasternDateSeed() {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    year: '2-digit',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date());
+  const get = (t) => parts.find((p) => p.type === t).value;
+  return `${get('year')}${get('month')}${get('day')}`;
+}
+
+/* Milliseconds until the next midnight in US Eastern time. */
+function msUntilEasternMidnight() {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).formatToParts(new Date());
+  const get = (t) => parseInt(parts.find((p) => p.type === t).value, 10);
+  let h = get('hour');
+  if (h === 24) h = 0;
+  const secsIntoDay = h * 3600 + get('minute') * 60 + get('second');
+  return (24 * 3600 - secsIntoDay) * 1000;
+}
+
+function formatCountdown(ms) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const h = String(Math.floor(total / 3600)).padStart(2, '0');
+  const m = String(Math.floor((total % 3600) / 60)).padStart(2, '0');
+  const s = String(total % 60).padStart(2, '0');
+  return `${h}:${m}:${s}`;
 }
 
 function normalize(name) {
@@ -113,6 +151,24 @@ function Wubdle() {
     return saved ? JSON.parse(saved) : false;
   });
 
+  const [isDaily, setIsDaily] = useState(() => {
+    if (initialSeed.current.fresh) return false;
+    const saved = localStorage.getItem(STORAGE.isDaily);
+    return saved ? JSON.parse(saved) : false;
+  });
+
+  const [dailyDone, setDailyDone] = useState(() => {
+    const saved = localStorage.getItem(STORAGE.dailyDone);
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  /* Ticks every second so the daily reset countdown stays live. */
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
+
   const [input, setInput] = useState('');
   const [message, setMessage] = useState('');
   const [seedInput, setSeedInput] = useState('');
@@ -173,6 +229,19 @@ function Wubdle() {
   useEffect(() => {
     localStorage.setItem(STORAGE.typeAssist, JSON.stringify(typeAssist));
   }, [typeAssist]);
+  useEffect(() => {
+    localStorage.setItem(STORAGE.isDaily, JSON.stringify(isDaily));
+  }, [isDaily]);
+  useEffect(() => {
+    localStorage.setItem(STORAGE.dailyDone, JSON.stringify(dailyDone));
+  }, [dailyDone]);
+
+  /* Record the daily challenge as completed once it's won or given up. */
+  useEffect(() => {
+    if (isDaily && (won || gaveUp)) {
+      setDailyDone(seed);
+    }
+  }, [isDaily, won, gaveUp, seed]);
 
   /* The answer for the current seed */
   const answer = useMemo(() => {
@@ -237,10 +306,11 @@ function Wubdle() {
     submitGuess();
   }
 
-  function doNewGame(customSeed) {
+  function doNewGame(customSeed, daily = false) {
     const next = (customSeed || makeSeed()).toUpperCase();
     setSeed(next);
     setSeeded(!!customSeed);
+    setIsDaily(daily);
     setGuesses([]);
     setWon(false);
     setGaveUp(false);
@@ -262,6 +332,20 @@ function Wubdle() {
       return;
     }
     doNewGame(customSeed);
+  }
+
+  function startDaily() {
+    const dailySeed = getEasternDateSeed();
+    if (dailyDone === dailySeed) return;
+    if (guesses.length > 0 && !won && !gaveUp) {
+      requestConfirm(
+        "Start today's Daily Challenge? Your progress on the current puzzle will be lost.",
+        'Daily Challenge',
+        () => doNewGame(dailySeed, true)
+      );
+      return;
+    }
+    doNewGame(dailySeed, true);
   }
 
   function giveUp() {
@@ -312,6 +396,9 @@ function Wubdle() {
     }
   }
 
+  const todaySeed = getEasternDateSeed();
+  const dailyCompletedToday = dailyDone === todaySeed;
+
   return (
     <div className="wubdle">
       <Link to="/" className="wubdle-home-link">← Home</Link>
@@ -323,7 +410,7 @@ function Wubdle() {
           ))}
         </div>
         <h1 className="wubdle-title">WUB<span>DLE</span></h1>
-        <p className="wubdle-tagline">Match the clues. Guess the EDM artist.</p>
+        <p className="wubdle-tagline">Guess an EDM artist. Follow the clues. Find the answer.</p>
       </header>
 
       {!loaded && <p className="wubdle-loading">Loading artists…</p>}
@@ -335,7 +422,26 @@ function Wubdle() {
               <span className="wubdle-seed-label">Seed</span>
               <code className="wubdle-seed-value">{seed}</code>
               <button className="wubdle-btn ghost" onClick={() => newGame()}>New Game</button>
+              <button
+                className="wubdle-btn ghost wubdle-daily"
+                onClick={startDaily}
+                disabled={dailyCompletedToday}
+                title={
+                  dailyCompletedToday
+                    ? "You've finished today's Daily Challenge"
+                    : "Play today's Daily Challenge"
+                }
+              >
+                Daily Challenge
+              </button>
             </div>
+
+            {dailyCompletedToday && (
+              <p className="wubdle-daily-reset">
+                ✓ Daily done · next puzzle in{' '}
+                <code>{formatCountdown(msUntilEasternMidnight())}</code>
+              </p>
+            )}
 
             <form
               className="wubdle-seed-play"
