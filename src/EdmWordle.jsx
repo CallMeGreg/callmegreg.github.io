@@ -8,19 +8,22 @@ const STORAGE = {
   seed: 'edmWordle.seed',
   guesses: 'edmWordle.guesses',
   won: 'edmWordle.won',
+  gaveUp: 'edmWordle.gaveUp',
   typeAssist: 'edmWordle.typeAssist',
 };
 
 const MEMBER_ORDER = ['Solo', 'Duo', 'Trio', 'Quartet', 'Quintet', 'Collective'];
-const MAGNITUDE_ORDER = ['Hundreds', 'Thousands', 'Millions', 'Billions'];
+const ALPHA_GROUPS = ['A-E', 'F-J', 'K-O', 'P-T', 'U-Z'];
+const STREAM_ORDER = ['<1M', '1M-2.5M', '2.5M-5M', '5M-10M', '10M+'];
 
 const ATTRIBUTES = [
-  { key: 'alphabet', label: 'Alphabet' },
+  { key: 'alphabet', label: 'Alphabet', order: ALPHA_GROUPS },
   { key: 'members', label: 'Members', order: MEMBER_ORDER },
   { key: 'gender', label: 'Gender' },
-  { key: 'city', label: 'Home City' },
+  { key: 'location', label: 'Location' },
   { key: 'subgenre', label: 'Subgenre' },
-  { key: 'magnitude', label: 'Spotify Plays', order: MAGNITUDE_ORDER },
+  { key: 'debut', label: 'First Record', numeric: true },
+  { key: 'streams', label: 'Spotify', order: STREAM_ORDER },
 ];
 
 /* ─── Seeded RNG helpers ─── */
@@ -56,9 +59,11 @@ function normalize(name) {
     .replace(/[^a-z0-9]/g, '');
 }
 
-function alphabetHalf(name) {
+function alphabetGroup(name) {
   const first = name.replace(/[^a-zA-Z]/g, '').charAt(0).toUpperCase();
-  return first && first <= 'M' ? 'A-M' : 'N-Z';
+  if (!first) return ALPHA_GROUPS[0];
+  const idx = Math.min(Math.floor((first.charCodeAt(0) - 65) / 5), 4);
+  return ALPHA_GROUPS[idx];
 }
 
 function getInitialSeed() {
@@ -93,6 +98,12 @@ function EdmWordle() {
     return saved ? JSON.parse(saved) : false;
   });
 
+  const [gaveUp, setGaveUp] = useState(() => {
+    if (initialSeed.current.fresh) return false;
+    const saved = localStorage.getItem(STORAGE.gaveUp);
+    return saved ? JSON.parse(saved) : false;
+  });
+
   const [typeAssist, setTypeAssist] = useState(() => {
     const saved = localStorage.getItem(STORAGE.typeAssist);
     return saved ? JSON.parse(saved) : false;
@@ -120,12 +131,13 @@ function EdmWordle() {
           .filter((r) => r.Name && r.Name.trim())
           .map((r) => ({
             name: r.Name.trim(),
-            alphabet: alphabetHalf(r.Name.trim()),
+            alphabet: alphabetGroup(r.Name.trim()),
             members: (r.Members || '').trim(),
             gender: (r.Gender || '').trim(),
-            city: (r.City || '').trim(),
+            location: (r.Location || '').trim(),
             subgenre: (r.Subgenre || '').trim(),
-            magnitude: (r.Magnitude || '').trim(),
+            debut: (r.Debut || '').trim(),
+            streams: (r.Streams || '').trim(),
           }));
         setArtists(rows);
         setLoaded(true);
@@ -143,6 +155,9 @@ function EdmWordle() {
   useEffect(() => {
     localStorage.setItem(STORAGE.won, JSON.stringify(won));
   }, [won]);
+  useEffect(() => {
+    localStorage.setItem(STORAGE.gaveUp, JSON.stringify(gaveUp));
+  }, [gaveUp]);
   useEffect(() => {
     localStorage.setItem(STORAGE.typeAssist, JSON.stringify(typeAssist));
   }, [typeAssist]);
@@ -184,7 +199,7 @@ function EdmWordle() {
   }, [typeAssist, input, artists, guesses]);
 
   function submitGuess(rawName) {
-    if (won) return;
+    if (won || gaveUp) return;
     const value = (rawName ?? input).trim();
     if (!value) return;
     const match = artists.find((a) => normalize(a.name) === normalize(value));
@@ -211,16 +226,30 @@ function EdmWordle() {
   }
 
   function newGame(customSeed) {
+    if (!customSeed && guesses.length > 0 && !won && !gaveUp) {
+      if (!window.confirm('Start a new game? Your progress on the current puzzle will be lost.')) {
+        return;
+      }
+    }
     const next = (customSeed || makeSeed()).toUpperCase();
     setSeed(next);
     setGuesses([]);
     setWon(false);
+    setGaveUp(false);
     setInput('');
     setSeedInput('');
     setMessage('');
     const url = new URL(window.location.href);
     url.searchParams.delete('seed');
     window.history.replaceState({}, '', url);
+  }
+
+  function giveUp() {
+    if (won || gaveUp) return;
+    if (!window.confirm('Give up and reveal the answer?')) return;
+    setGaveUp(true);
+    setInput('');
+    setMessage('');
   }
 
   function resetState() {
@@ -230,7 +259,17 @@ function EdmWordle() {
     localStorage.removeItem(STORAGE.seed);
     localStorage.removeItem(STORAGE.guesses);
     localStorage.removeItem(STORAGE.won);
-    newGame();
+    localStorage.removeItem(STORAGE.gaveUp);
+    setGaveUp(false);
+    setWon(false);
+    setGuesses([]);
+    setSeed(makeSeed().toUpperCase());
+    setInput('');
+    setSeedInput('');
+    setMessage('');
+    const url = new URL(window.location.href);
+    url.searchParams.delete('seed');
+    window.history.replaceState({}, '', url);
   }
 
   function cellState(attrKey, guessVal) {
@@ -239,7 +278,11 @@ function EdmWordle() {
     const match = guessVal === answerVal;
     const attr = ATTRIBUTES.find((a) => a.key === attrKey);
     let hint = null;
-    if (!match && attr && attr.order) {
+    if (!match && attr && attr.numeric) {
+      const gi = parseInt(guessVal, 10);
+      const ai = parseInt(answerVal, 10);
+      if (!isNaN(gi) && !isNaN(ai)) hint = ai > gi ? '▲' : '▼';
+    } else if (!match && attr && attr.order) {
       const gi = attr.order.indexOf(guessVal);
       const ai = attr.order.indexOf(answerVal);
       if (gi !== -1 && ai !== -1) hint = ai > gi ? '▲' : '▼';
@@ -272,7 +315,7 @@ function EdmWordle() {
           ))}
         </div>
         <h1 className="edm-title">EDM<span>WORDLE</span></h1>
-        <p className="edm-tagline">Guess the EDM artist. Unlimited tries. Match the clues.</p>
+        <p className="edm-tagline">Match the clues. Guess the EDM artist.</p>
       </header>
 
       {!loaded && <p className="edm-loading">Loading artists…</p>}
@@ -331,7 +374,24 @@ function EdmWordle() {
             </div>
           )}
 
-          {!won && (
+          {gaveUp && answer && (
+            <div className="edm-giveup">
+              <h2>🏳️ You gave up</h2>
+              <p>
+                The answer was <strong>{answer.name}</strong> — you made{' '}
+                <strong>{guesses.length}</strong> {guesses.length === 1 ? 'guess' : 'guesses'} before
+                giving up.
+              </p>
+              <p className="edm-win-seed">
+                Want a rematch? Seed <code>{seed}</code>
+              </p>
+              <div className="edm-win-actions">
+                <button className="edm-btn" onClick={() => newGame()}>New Game</button>
+              </div>
+            </div>
+          )}
+
+          {!won && !gaveUp && (
             <form className="edm-guess-form" onSubmit={handleSubmit} autoComplete="off">
               <div className="edm-input-wrap">
                 <input
@@ -357,12 +417,15 @@ function EdmWordle() {
                   </ul>
                 )}
               </div>
+              <button type="button" className="edm-btn giveup" onClick={giveUp}>
+                Give up
+              </button>
             </form>
           )}
 
           {message && <p className="edm-message">{message}</p>}
 
-          {guessedArtists.length > 0 && (
+          {(guessedArtists.length > 0 || (gaveUp && answer)) && (
             <div className="edm-board">
               <div className="edm-row edm-row-head">
                 <div className="edm-cell edm-name-cell">Artist</div>
@@ -370,6 +433,16 @@ function EdmWordle() {
                   <div key={attr.key} className="edm-cell">{attr.label}</div>
                 ))}
               </div>
+              {gaveUp && answer && (
+                <div className="edm-row edm-answer-row">
+                  <div className="edm-cell edm-name-cell">{answer.name}</div>
+                  {ATTRIBUTES.map((attr) => (
+                    <div key={attr.key} className="edm-cell edm-attr answer">
+                      <span className="edm-attr-val">{answer[attr.key] || '—'}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               {guessedArtists
                 .slice()
                 .reverse()
@@ -392,12 +465,6 @@ function EdmWordle() {
                 ))}
             </div>
           )}
-
-          <p className="edm-note">
-            Green = matches the secret artist, red = no match. ▲ means the answer is higher,
-            ▼ lower (for Members &amp; Spotify Plays). Spotify Plays = magnitude of all-time
-            streams.
-          </p>
         </main>
       )}
     </div>
