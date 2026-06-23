@@ -6,6 +6,7 @@ import Unmatched from './Unmatched'; // Import Unmatched component
 import CoinChaser from './CoinChaser';
 import HouseAlwaysWins from './HouseAlwaysWins';
 import Jeopardy from './Jeopardy';
+import Wubdle from './Wubdle';
 import './index.css';
 
 function Home() {
@@ -32,6 +33,10 @@ function Home() {
           <img src="/images/jeopardy.svg" alt="Jeopardy!" />
           <span>Jeopardy!</span>
         </Link>
+        <Link to="/wubdle" className="button">
+          <img src="/images/wubdle.svg" alt="Wubdle" />
+          <span>Wubdle</span>
+        </Link>
       </div>
     </div>
   );
@@ -48,6 +53,7 @@ root.render(
         <Route path="/godot-game" element={<CoinChaser />} />
         <Route path="/house-always-wins" element={<HouseAlwaysWins />} />
         <Route path="/jeopardy" element={<Jeopardy />} />
+        <Route path="/wubdle" element={<Wubdle />} />
       </Routes>
     </Router>
   </React.StrictMode>
