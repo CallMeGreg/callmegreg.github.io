@@ -475,8 +475,12 @@ function Wubdle() {
           {won && answer && (
             <div className="wubdle-win">
               <h2>🎆 You got it!</h2>
-              {seeded && (
-                <p className="wubdle-win-badge">🌱 Seeded run · <code>{seed}</code></p>
+              {isDaily ? (
+                <p className="wubdle-win-badge">📅 Daily Challenge · <code>{seed}</code></p>
+              ) : (
+                seeded && (
+                  <p className="wubdle-win-badge">🌱 Seeded run · <code>{seed}</code></p>
+                )
               )}
               <p>
                 The artist was <strong>{answer.name}</strong>. You nailed it in{' '}
