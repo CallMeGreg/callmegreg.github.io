@@ -410,7 +410,7 @@ function Wubdle() {
           ))}
         </div>
         <h1 className="wubdle-title">WUB<span>DLE</span></h1>
-        <p className="wubdle-tagline">Guess an EDM artist. Follow the clues. Find the answer.</p>
+        <p className="wubdle-tagline">Guess an EDM artist. Follow the clues.</p>
       </header>
 
       {!loaded && <p className="wubdle-loading">Loading artists…</p>}
