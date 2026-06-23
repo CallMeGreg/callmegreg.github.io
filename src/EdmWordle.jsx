@@ -17,7 +17,7 @@ const ALPHA_GROUPS = ['A-M', 'N-Z'];
 const STREAM_ORDER = ['<1M', '1M-2.5M', '2.5M-5M', '5M-10M', '10M+'];
 
 const ATTRIBUTES = [
-  { key: 'alphabet', label: 'Alphabet', order: ALPHA_GROUPS },
+  { key: 'alphabet', label: 'Alphabet', order: ALPHA_GROUPS, reverseHint: true },
   { key: 'members', label: 'Members', order: MEMBER_ORDER },
   { key: 'gender', label: 'Gender' },
   { key: 'location', label: 'Location' },
@@ -114,8 +114,8 @@ function EdmWordle() {
   const [confirmState, setConfirmState] = useState(null);
   const inputRef = useRef(null);
 
-  function requestConfirm(message, confirmLabel, onConfirm) {
-    setConfirmState({ message, confirmLabel, onConfirm });
+  function requestConfirm(message, confirmLabel, onConfirm, cancelLabel) {
+    setConfirmState({ message, confirmLabel, onConfirm, cancelLabel });
   }
 
   /* Scope page-level body background to this route only */
@@ -257,11 +257,16 @@ function EdmWordle() {
 
   function giveUp() {
     if (won || gaveUp) return;
-    requestConfirm('Give up and reveal the answer?', 'Give up', () => {
-      setGaveUp(true);
-      setInput('');
-      setMessage('');
-    });
+    requestConfirm(
+      'Are you a quitter?',
+      'Yes',
+      () => {
+        setGaveUp(true);
+        setInput('');
+        setMessage('');
+      },
+      "Nah I've got this"
+    );
   }
   function cellState(attrKey, guessVal) {
     if (!answer) return { match: false };
@@ -276,7 +281,10 @@ function EdmWordle() {
     } else if (!match && attr && attr.order) {
       const gi = attr.order.indexOf(guessVal);
       const ai = attr.order.indexOf(answerVal);
-      if (gi !== -1 && ai !== -1) hint = ai > gi ? '▲' : '▼';
+      if (gi !== -1 && ai !== -1) {
+        const higher = ai > gi;
+        hint = (attr.reverseHint ? !higher : higher) ? '▲' : '▼';
+      }
     }
     return { match, hint };
   }
@@ -469,7 +477,7 @@ function EdmWordle() {
             <p className="edm-modal-message">{confirmState.message}</p>
             <div className="edm-modal-actions">
               <button className="edm-btn ghost" onClick={() => setConfirmState(null)}>
-                Cancel
+                {confirmState.cancelLabel || 'Cancel'}
               </button>
               <button
                 className="edm-btn"
