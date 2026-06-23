@@ -301,7 +301,7 @@ function EdmWordle() {
   function shareSeed() {
     const url = new URL(window.location.href);
     url.searchParams.set('seed', seed);
-    const text = `EDM Wordle — I got it in ${guesses.length} guesses! Seed: ${seed}\n${url.toString()}`;
+    const text = `Wubdle — I got it in ${guesses.length} guesses! Seed: ${seed}\n${url.toString()}`;
     if (navigator.clipboard) {
       navigator.clipboard.writeText(text).then(
         () => setMessage('Result copied to clipboard!'),
@@ -322,7 +322,7 @@ function EdmWordle() {
             <span key={i} style={{ animationDelay: `${(i % 14) * 0.07}s` }} />
           ))}
         </div>
-        <h1 className="edm-title">EDM<span>WORDLE</span></h1>
+        <h1 className="edm-title">WUB<span>DLE</span></h1>
         <p className="edm-tagline">Match the clues. Guess the EDM artist.</p>
       </header>
 

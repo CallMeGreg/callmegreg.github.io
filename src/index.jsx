@@ -34,8 +34,8 @@ function Home() {
           <span>Jeopardy!</span>
         </Link>
         <Link to="/edm-wordle" className="button">
-          <img src="/images/edm-wordle.svg" alt="EDM Wordle" />
-          <span>EDM Wordle</span>
+          <img src="/images/edm-wordle.svg" alt="Wubdle" />
+          <span>Wubdle</span>
         </Link>
       </div>
     </div>
