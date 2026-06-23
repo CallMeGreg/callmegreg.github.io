@@ -1,0 +1,333 @@
+:root {
+  --edm-cyan: #00e5ff;
+  --edm-magenta: #ff00e5;
+  --edm-purple: #7c4dff;
+  --edm-green: #1db954;
+  --edm-green-glow: rgba(29, 185, 84, 0.55);
+  --edm-red: #ff2d55;
+  --edm-red-glow: rgba(255, 45, 85, 0.5);
+}
+
+body.edm-wordle-page {
+  margin: 0;
+  background: radial-gradient(circle at 20% 0%, #1b0b3a 0%, #0a0a14 45%, #05050a 100%);
+  background-attachment: fixed;
+}
+
+.edm-wordle {
+  min-height: 100vh;
+  color: #f3f3fb;
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  padding: 16px 16px 48px;
+  box-sizing: border-box;
+}
+
+.edm-home-link {
+  position: fixed;
+  top: 14px;
+  left: 18px;
+  z-index: 50;
+  color: var(--edm-cyan);
+  text-decoration: none;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+}
+.edm-home-link:hover { opacity: 1; text-shadow: 0 0 10px var(--edm-cyan); }
+
+/* ─── Header ─── */
+.edm-header {
+  text-align: center;
+  padding: 28px 0 10px;
+}
+
+.edm-waves {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 56px;
+  margin: 0 auto 14px;
+}
+.edm-waves span {
+  display: block;
+  width: 4px;
+  height: 8px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, var(--edm-cyan), var(--edm-magenta));
+  animation: edm-bounce 1.1s ease-in-out infinite;
+}
+@keyframes edm-bounce {
+  0%, 100% { height: 8px; opacity: 0.5; }
+  50% { height: 48px; opacity: 1; }
+}
+
+.edm-title {
+  font-size: clamp(2.4rem, 9vw, 4rem);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  margin: 0;
+  line-height: 1;
+  background: linear-gradient(90deg, var(--edm-cyan), var(--edm-purple), var(--edm-magenta));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 38px rgba(124, 77, 255, 0.4);
+}
+.edm-title span {
+  display: inline-block;
+  margin-left: 0.18em;
+  -webkit-text-fill-color: transparent;
+}
+.edm-tagline {
+  margin: 10px 0 0;
+  color: #b9b6d6;
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+}
+
+.edm-loading { text-align: center; color: #b9b6d6; }
+
+.edm-main {
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+/* ─── Controls ─── */
+.edm-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  backdrop-filter: blur(8px);
+}
+
+.edm-seed-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.edm-seed-label { color: #9b97c0; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; }
+.edm-seed-value {
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--edm-cyan);
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.edm-seed-play { display: flex; gap: 6px; }
+.edm-seed-play input {
+  width: 170px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: #fff;
+  font-size: 0.9rem;
+}
+.edm-seed-play input::placeholder { color: #8a87a8; }
+
+.edm-btn {
+  background: linear-gradient(120deg, var(--edm-cyan), var(--edm-purple));
+  color: #07070f;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 16px;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.edm-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0, 229, 255, 0.35); }
+.edm-btn.ghost {
+  background: transparent;
+  color: #d9d7ef;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.edm-btn.ghost:hover { box-shadow: 0 0 0 1px var(--edm-magenta); color: #fff; }
+
+/* ─── Toggle ─── */
+.edm-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  color: #d9d7ef;
+  cursor: pointer;
+  user-select: none;
+}
+.edm-toggle input { display: none; }
+.edm-toggle-track {
+  width: 40px;
+  height: 22px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.16);
+  position: relative;
+  transition: background 0.2s ease;
+}
+.edm-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s ease;
+}
+.edm-toggle input:checked + .edm-toggle-track {
+  background: linear-gradient(120deg, var(--edm-cyan), var(--edm-magenta));
+}
+.edm-toggle input:checked + .edm-toggle-track .edm-toggle-thumb { transform: translateX(18px); }
+
+/* ─── Guess form ─── */
+.edm-guess-form { margin: 0 auto 14px; max-width: 520px; }
+.edm-input-wrap { position: relative; display: flex; gap: 8px; }
+.edm-input-wrap > input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: #fff;
+  font-size: 1.05rem;
+}
+.edm-input-wrap > input:focus {
+  outline: none;
+  border-color: var(--edm-cyan);
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.18);
+}
+.edm-input-wrap > input::placeholder { color: #8a87a8; }
+
+.edm-suggestions {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 86px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: #15132b;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  z-index: 20;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+}
+.edm-suggestions li button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: #e8e6fb;
+  padding: 9px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+.edm-suggestions li button:hover { background: rgba(0, 229, 255, 0.14); color: #fff; }
+
+.edm-message {
+  text-align: center;
+  color: #ffd166;
+  margin: 4px auto 14px;
+  font-size: 0.95rem;
+}
+
+/* ─── Win banner ─── */
+.edm-win {
+  text-align: center;
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.12), rgba(255, 0, 229, 0.12));
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 18px;
+  padding: 22px;
+  margin-bottom: 20px;
+  box-shadow: 0 0 50px rgba(124, 77, 255, 0.3);
+}
+.edm-win h2 { margin: 0 0 6px; font-size: 1.8rem; }
+.edm-win p { margin: 4px 0; color: #e6e4fb; }
+.edm-win-seed code {
+  font-family: 'Courier New', monospace;
+  color: var(--edm-cyan);
+  letter-spacing: 0.1em;
+}
+.edm-win-actions { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
+
+/* ─── Board ─── */
+.edm-board { display: flex; flex-direction: column; gap: 8px; overflow-x: auto; }
+.edm-row {
+  display: grid;
+  grid-template-columns: 1.5fr repeat(6, 1fr);
+  gap: 8px;
+  min-width: 720px;
+}
+.edm-row-head .edm-cell {
+  background: transparent;
+  color: #9b97c0;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 4px 6px;
+  border: none;
+  box-shadow: none;
+}
+.edm-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 12px 6px;
+  border-radius: 10px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  min-height: 30px;
+}
+.edm-name-cell {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-weight: 700;
+  align-items: flex-start;
+  text-align: left;
+  padding-left: 12px;
+}
+.edm-attr {
+  color: #fff;
+  animation: edm-flip 0.4s ease both;
+}
+.edm-attr.match {
+  background: linear-gradient(135deg, var(--edm-green), #16863f);
+  box-shadow: 0 0 16px var(--edm-green-glow);
+}
+.edm-attr.miss {
+  background: linear-gradient(135deg, var(--edm-red), #c01f3f);
+  box-shadow: 0 0 14px var(--edm-red-glow);
+}
+.edm-attr-val { line-height: 1.15; }
+.edm-hint { font-size: 0.95rem; margin-top: 2px; opacity: 0.95; }
+
+@keyframes edm-flip {
+  0% { transform: rotateX(-90deg); opacity: 0; }
+  100% { transform: rotateX(0); opacity: 1; }
+}
+
+.edm-note {
+  max-width: 700px;
+  margin: 22px auto 0;
+  text-align: center;
+  color: #8f8cb3;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+  .edm-controls { gap: 10px; }
+  .edm-seed-play input { width: 130px; }
+  .edm-note { font-size: 0.78rem; }
+}
