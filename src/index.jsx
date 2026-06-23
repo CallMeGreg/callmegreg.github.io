@@ -33,7 +33,7 @@ function Home() {
           <img src="/images/jeopardy.svg" alt="Jeopardy!" />
           <span>Jeopardy!</span>
         </Link>
-        <Link to="/edm-wordle" className="button">
+        <Link to="/wubdle" className="button">
           <img src="/images/edm-wordle.svg" alt="Wubdle" />
           <span>Wubdle</span>
         </Link>
@@ -53,7 +53,7 @@ root.render(
         <Route path="/godot-game" element={<CoinChaser />} />
         <Route path="/house-always-wins" element={<HouseAlwaysWins />} />
         <Route path="/jeopardy" element={<Jeopardy />} />
-        <Route path="/edm-wordle" element={<EdmWordle />} />
+        <Route path="/wubdle" element={<EdmWordle />} />
       </Routes>
     </Router>
   </React.StrictMode>
