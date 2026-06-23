@@ -13,7 +13,7 @@ const STORAGE = {
 };
 
 const MEMBER_ORDER = ['Solo', 'Duo', 'Trio', 'Quartet', 'Quintet', 'Collective'];
-const ALPHA_GROUPS = ['A-E', 'F-J', 'K-O', 'P-T', 'U-Z'];
+const ALPHA_GROUPS = ['A-M', 'N-Z'];
 const STREAM_ORDER = ['<1M', '1M-2.5M', '2.5M-5M', '5M-10M', '10M+'];
 
 const ATTRIBUTES = [
@@ -23,7 +23,7 @@ const ATTRIBUTES = [
   { key: 'location', label: 'Location' },
   { key: 'subgenre', label: 'Subgenre' },
   { key: 'debut', label: 'First Record', numeric: true },
-  { key: 'streams', label: 'Spotify', order: STREAM_ORDER },
+  { key: 'streams', label: 'Monthly Spotify', order: STREAM_ORDER },
 ];
 
 /* ─── Seeded RNG helpers ─── */
@@ -62,8 +62,7 @@ function normalize(name) {
 function alphabetGroup(name) {
   const first = name.replace(/[^a-zA-Z]/g, '').charAt(0).toUpperCase();
   if (!first) return ALPHA_GROUPS[0];
-  const idx = Math.min(Math.floor((first.charCodeAt(0) - 65) / 5), 4);
-  return ALPHA_GROUPS[idx];
+  return first.charCodeAt(0) <= 77 ? ALPHA_GROUPS[0] : ALPHA_GROUPS[1];
 }
 
 function getInitialSeed() {
@@ -112,7 +111,12 @@ function EdmWordle() {
   const [input, setInput] = useState('');
   const [message, setMessage] = useState('');
   const [seedInput, setSeedInput] = useState('');
+  const [confirmState, setConfirmState] = useState(null);
   const inputRef = useRef(null);
+
+  function requestConfirm(message, confirmLabel, onConfirm) {
+    setConfirmState({ message, confirmLabel, onConfirm });
+  }
 
   /* Scope page-level body background to this route only */
   useEffect(() => {
@@ -225,12 +229,7 @@ function EdmWordle() {
     submitGuess();
   }
 
-  function newGame(customSeed) {
-    if (!customSeed && guesses.length > 0 && !won && !gaveUp) {
-      if (!window.confirm('Start a new game? Your progress on the current puzzle will be lost.')) {
-        return;
-      }
-    }
+  function doNewGame(customSeed) {
     const next = (customSeed || makeSeed()).toUpperCase();
     setSeed(next);
     setGuesses([]);
@@ -244,34 +243,26 @@ function EdmWordle() {
     window.history.replaceState({}, '', url);
   }
 
-  function giveUp() {
-    if (won || gaveUp) return;
-    if (!window.confirm('Give up and reveal the answer?')) return;
-    setGaveUp(true);
-    setInput('');
-    setMessage('');
-  }
-
-  function resetState() {
-    if (!window.confirm('Reset the game? This clears your current guesses and starts a new random puzzle.')) {
+  function newGame(customSeed) {
+    if (!customSeed && guesses.length > 0 && !won && !gaveUp) {
+      requestConfirm(
+        'Start a new game? Your progress on the current puzzle will be lost.',
+        'New game',
+        () => doNewGame()
+      );
       return;
     }
-    localStorage.removeItem(STORAGE.seed);
-    localStorage.removeItem(STORAGE.guesses);
-    localStorage.removeItem(STORAGE.won);
-    localStorage.removeItem(STORAGE.gaveUp);
-    setGaveUp(false);
-    setWon(false);
-    setGuesses([]);
-    setSeed(makeSeed().toUpperCase());
-    setInput('');
-    setSeedInput('');
-    setMessage('');
-    const url = new URL(window.location.href);
-    url.searchParams.delete('seed');
-    window.history.replaceState({}, '', url);
+    doNewGame(customSeed);
   }
 
+  function giveUp() {
+    if (won || gaveUp) return;
+    requestConfirm('Give up and reveal the answer?', 'Give up', () => {
+      setGaveUp(true);
+      setInput('');
+      setMessage('');
+    });
+  }
   function cellState(attrKey, guessVal) {
     if (!answer) return { match: false };
     const answerVal = answer[attrKey];
@@ -327,7 +318,6 @@ function EdmWordle() {
               <span className="edm-seed-label">Seed</span>
               <code className="edm-seed-value">{seed}</code>
               <button className="edm-btn ghost" onClick={() => newGame()}>New Game</button>
-              <button className="edm-btn ghost" onClick={resetState}>Reset</button>
             </div>
 
             <form
@@ -405,6 +395,9 @@ function EdmWordle() {
                   }}
                 />
                 <button className="edm-btn" type="submit">Guess</button>
+                <button type="button" className="edm-btn giveup" onClick={giveUp}>
+                  Give up
+                </button>
                 {suggestions.length > 0 && (
                   <ul className="edm-suggestions">
                     {suggestions.map((a) => (
@@ -417,9 +410,6 @@ function EdmWordle() {
                   </ul>
                 )}
               </div>
-              <button type="button" className="edm-btn giveup" onClick={giveUp}>
-                Give up
-              </button>
             </form>
           )}
 
@@ -466,6 +456,34 @@ function EdmWordle() {
             </div>
           )}
         </main>
+      )}
+
+      {confirmState && (
+        <div className="edm-modal-overlay" onClick={() => setConfirmState(null)}>
+          <div
+            className="edm-modal"
+            role="dialog"
+            aria-modal="true"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="edm-modal-message">{confirmState.message}</p>
+            <div className="edm-modal-actions">
+              <button className="edm-btn ghost" onClick={() => setConfirmState(null)}>
+                Cancel
+              </button>
+              <button
+                className="edm-btn"
+                onClick={() => {
+                  const cb = confirmState.onConfirm;
+                  setConfirmState(null);
+                  if (cb) cb();
+                }}
+              >
+                {confirmState.confirmLabel || 'Confirm'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

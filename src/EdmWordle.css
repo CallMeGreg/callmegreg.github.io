@@ -196,12 +196,11 @@ body.edm-wordle-page {
 .edm-toggle input:checked + .edm-toggle-track .edm-toggle-thumb { transform: translateX(18px); }
 
 /* ─── Guess form ─── */
-.edm-guess-form { margin: 0 auto 14px; max-width: 520px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-.edm-guess-form .edm-input-wrap { width: 100%; }
-.edm-guess-form .edm-btn.giveup { align-self: center; }
+.edm-guess-form { margin: 0 auto 14px; max-width: 620px; }
 .edm-input-wrap { position: relative; display: flex; gap: 8px; }
 .edm-input-wrap > input {
   flex: 1;
+  min-width: 0;
   background: rgba(255, 255, 255, 0.07);
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 12px;
@@ -209,6 +208,7 @@ body.edm-wordle-page {
   color: #fff;
   font-size: 1.05rem;
 }
+.edm-input-wrap > .edm-btn { white-space: nowrap; }
 .edm-input-wrap > input:focus {
   outline: none;
   border-color: var(--edm-cyan);
@@ -220,7 +220,7 @@ body.edm-wordle-page {
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
-  right: 86px;
+  right: 0;
   margin: 0;
   padding: 6px;
   list-style: none;
@@ -293,22 +293,22 @@ body.edm-wordle-page {
 }
 
 /* ─── Board ─── */
-.edm-board { display: flex; flex-direction: column; gap: 8px; overflow-x: auto; }
+.edm-board { display: flex; flex-direction: column; gap: 6px; width: 100%; }
 .edm-row {
   display: grid;
-  grid-template-columns: 1.5fr repeat(7, 1fr);
-  gap: 8px;
-  min-width: 880px;
+  grid-template-columns: minmax(0, 1.4fr) repeat(7, minmax(0, 1fr));
+  gap: 4px;
 }
 .edm-row-head .edm-cell {
   background: transparent;
   color: #9b97c0;
-  font-size: 0.72rem;
+  font-size: clamp(0.5rem, 1.4vw, 0.72rem);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 4px 6px;
+  letter-spacing: 0.04em;
+  padding: 4px 2px;
   border: none;
   box-shadow: none;
+  overflow-wrap: anywhere;
 }
 .edm-cell {
   display: flex;
@@ -316,11 +316,15 @@ body.edm-wordle-page {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 12px 6px;
-  border-radius: 10px;
-  font-size: 0.86rem;
+  padding: 10px 3px;
+  border-radius: 8px;
+  font-size: clamp(0.55rem, 1.5vw, 0.86rem);
   font-weight: 600;
   min-height: 30px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
 }
 .edm-name-cell {
   background: rgba(255, 255, 255, 0.06);
@@ -328,7 +332,7 @@ body.edm-wordle-page {
   font-weight: 700;
   align-items: flex-start;
   text-align: left;
-  padding-left: 12px;
+  padding-left: 8px;
 }
 .edm-attr {
   color: #fff;
@@ -348,6 +352,45 @@ body.edm-wordle-page {
 @keyframes edm-flip {
   0% { transform: rotateX(-90deg); opacity: 0; }
   100% { transform: rotateX(0); opacity: 1; }
+}
+
+/* ─── Confirm modal ─── */
+.edm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(7, 7, 15, 0.72);
+  backdrop-filter: blur(6px);
+  animation: edm-fade 0.18s ease both;
+}
+.edm-modal {
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  background: linear-gradient(160deg, #1a1736, #110f24);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 18px;
+  padding: 26px 24px 22px;
+  box-shadow: 0 0 60px rgba(124, 77, 255, 0.35), 0 20px 50px rgba(0, 0, 0, 0.5);
+  animation: edm-pop 0.2s ease both;
+}
+.edm-modal-message {
+  margin: 0 0 20px;
+  color: #ece9ff;
+  font-size: 1.05rem;
+  line-height: 1.45;
+}
+.edm-modal-actions { display: flex; gap: 10px; justify-content: center; }
+.edm-modal-actions .edm-btn { min-width: 110px; }
+
+@keyframes edm-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes edm-pop {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @media (max-width: 600px) {
