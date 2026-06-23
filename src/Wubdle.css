@@ -121,6 +121,7 @@ body.wubdle-page {
   border-radius: 8px;
 }
 
+.wubdle-seed-play-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .wubdle-seed-play { display: flex; gap: 6px; }
 .wubdle-seed-play input {
   width: 170px;

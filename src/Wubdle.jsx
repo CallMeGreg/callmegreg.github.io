@@ -419,8 +419,6 @@ function Wubdle() {
         <main className="wubdle-main">
           <div className="wubdle-controls">
             <div className="wubdle-seed-row">
-              <span className="wubdle-seed-label">Seed</span>
-              <code className="wubdle-seed-value">{seed}</code>
               <button className="wubdle-btn ghost" onClick={() => newGame()}>New Game</button>
               <button
                 className="wubdle-btn ghost wubdle-daily"
@@ -443,21 +441,25 @@ function Wubdle() {
               </p>
             )}
 
-            <form
-              className="wubdle-seed-play"
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (seedInput.trim()) newGame(seedInput.trim());
-              }}
-            >
-              <input
-                type="text"
-                placeholder="Play a specific seed…"
-                value={seedInput}
-                onChange={(e) => setSeedInput(e.target.value)}
-              />
-              <button className="wubdle-btn" type="submit">Go</button>
-            </form>
+            <div className="wubdle-seed-play-row">
+              <span className="wubdle-seed-label">Seed</span>
+              <code className="wubdle-seed-value">{seed}</code>
+              <form
+                className="wubdle-seed-play"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (seedInput.trim()) newGame(seedInput.trim());
+                }}
+              >
+                <input
+                  type="text"
+                  placeholder="Play a specific seed…"
+                  value={seedInput}
+                  onChange={(e) => setSeedInput(e.target.value)}
+                />
+                <button className="wubdle-btn" type="submit">Go</button>
+              </form>
+            </div>
 
             <label className="wubdle-toggle">
               <input
