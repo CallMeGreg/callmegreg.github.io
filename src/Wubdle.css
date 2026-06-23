@@ -1,20 +1,20 @@
 :root {
-  --edm-cyan: #00e5ff;
-  --edm-magenta: #ff00e5;
-  --edm-purple: #7c4dff;
-  --edm-green: #1db954;
-  --edm-green-glow: rgba(29, 185, 84, 0.55);
-  --edm-red: #ff2d55;
-  --edm-red-glow: rgba(255, 45, 85, 0.5);
+  --wubdle-cyan: #00e5ff;
+  --wubdle-magenta: #ff00e5;
+  --wubdle-purple: #7c4dff;
+  --wubdle-green: #1db954;
+  --wubdle-green-glow: rgba(29, 185, 84, 0.55);
+  --wubdle-red: #ff2d55;
+  --wubdle-red-glow: rgba(255, 45, 85, 0.5);
 }
 
-body.edm-wordle-page {
+body.wubdle-page {
   margin: 0;
   background: radial-gradient(circle at 20% 0%, #1b0b3a 0%, #0a0a14 45%, #05050a 100%);
   background-attachment: fixed;
 }
 
-.edm-wordle {
+.wubdle {
   min-height: 100vh;
   color: #f3f3fb;
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -22,26 +22,26 @@ body.edm-wordle-page {
   box-sizing: border-box;
 }
 
-.edm-home-link {
+.wubdle-home-link {
   position: fixed;
   top: 14px;
   left: 18px;
   z-index: 50;
-  color: var(--edm-cyan);
+  color: var(--wubdle-cyan);
   text-decoration: none;
   font-size: 15px;
   letter-spacing: 0.04em;
   opacity: 0.85;
 }
-.edm-home-link:hover { opacity: 1; text-shadow: 0 0 10px var(--edm-cyan); }
+.wubdle-home-link:hover { opacity: 1; text-shadow: 0 0 10px var(--wubdle-cyan); }
 
 /* ─── Header ─── */
-.edm-header {
+.wubdle-header {
   text-align: center;
   padding: 28px 0 10px;
 }
 
-.edm-waves {
+.wubdle-waves {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -49,52 +49,52 @@ body.edm-wordle-page {
   height: 56px;
   margin: 0 auto 14px;
 }
-.edm-waves span {
+.wubdle-waves span {
   display: block;
   width: 4px;
   height: 8px;
   border-radius: 3px;
-  background: linear-gradient(180deg, var(--edm-cyan), var(--edm-magenta));
-  animation: edm-bounce 1.1s ease-in-out infinite;
+  background: linear-gradient(180deg, var(--wubdle-cyan), var(--wubdle-magenta));
+  animation: wubdle-bounce 1.1s ease-in-out infinite;
 }
-@keyframes edm-bounce {
+@keyframes wubdle-bounce {
   0%, 100% { height: 8px; opacity: 0.5; }
   50% { height: 48px; opacity: 1; }
 }
 
-.edm-title {
+.wubdle-title {
   font-size: clamp(2.4rem, 9vw, 4rem);
   font-weight: 900;
   letter-spacing: 0.12em;
   margin: 0;
   line-height: 1;
-  background: linear-gradient(90deg, var(--edm-cyan), var(--edm-purple), var(--edm-magenta));
+  background: linear-gradient(90deg, var(--wubdle-cyan), var(--wubdle-purple), var(--wubdle-magenta));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   text-shadow: 0 0 38px rgba(124, 77, 255, 0.4);
 }
-.edm-title span {
+.wubdle-title span {
   display: inline-block;
   margin-left: 0.18em;
   -webkit-text-fill-color: transparent;
 }
-.edm-tagline {
+.wubdle-tagline {
   margin: 10px 0 0;
   color: #b9b6d6;
   font-size: 0.95rem;
   letter-spacing: 0.03em;
 }
 
-.edm-loading { text-align: center; color: #b9b6d6; }
+.wubdle-loading { text-align: center; color: #b9b6d6; }
 
-.edm-main {
+.wubdle-main {
   max-width: 880px;
   margin: 0 auto;
 }
 
 /* ─── Controls ─── */
-.edm-controls {
+.wubdle-controls {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -108,21 +108,21 @@ body.edm-wordle-page {
   backdrop-filter: blur(8px);
 }
 
-.edm-seed-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.edm-seed-label { color: #9b97c0; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; }
-.edm-seed-value {
+.wubdle-seed-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.wubdle-seed-label { color: #9b97c0; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; }
+.wubdle-seed-value {
   font-family: 'Courier New', monospace;
   font-weight: 700;
   letter-spacing: 0.12em;
-  color: var(--edm-cyan);
+  color: var(--wubdle-cyan);
   background: rgba(0, 229, 255, 0.08);
   border: 1px solid rgba(0, 229, 255, 0.25);
   padding: 4px 10px;
   border-radius: 8px;
 }
 
-.edm-seed-play { display: flex; gap: 6px; }
-.edm-seed-play input {
+.wubdle-seed-play { display: flex; gap: 6px; }
+.wubdle-seed-play input {
   width: 170px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -131,10 +131,10 @@ body.edm-wordle-page {
   color: #fff;
   font-size: 0.9rem;
 }
-.edm-seed-play input::placeholder { color: #8a87a8; }
+.wubdle-seed-play input::placeholder { color: #8a87a8; }
 
-.edm-btn {
-  background: linear-gradient(120deg, var(--edm-cyan), var(--edm-purple));
+.wubdle-btn {
+  background: linear-gradient(120deg, var(--wubdle-cyan), var(--wubdle-purple));
   color: #07070f;
   font-weight: 700;
   border: none;
@@ -144,25 +144,25 @@ body.edm-wordle-page {
   letter-spacing: 0.03em;
   transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
-.edm-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0, 229, 255, 0.35); }
-.edm-btn.ghost {
+.wubdle-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0, 229, 255, 0.35); }
+.wubdle-btn.ghost {
   background: transparent;
   color: #d9d7ef;
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
-.edm-btn.ghost:hover { box-shadow: 0 0 0 1px var(--edm-magenta); color: #fff; }
-.edm-btn.giveup {
+.wubdle-btn.ghost:hover { box-shadow: 0 0 0 1px var(--wubdle-magenta); color: #fff; }
+.wubdle-btn.giveup {
   background: transparent;
   color: #f3a0a0;
   border: 1px solid rgba(255, 90, 120, 0.4);
 }
-.edm-btn.giveup:hover {
+.wubdle-btn.giveup:hover {
   box-shadow: 0 0 0 1px rgba(255, 90, 120, 0.7);
   color: #ffd0d0;
 }
 
 /* ─── Toggle ─── */
-.edm-toggle {
+.wubdle-toggle {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -171,8 +171,8 @@ body.edm-wordle-page {
   cursor: pointer;
   user-select: none;
 }
-.edm-toggle input { display: none; }
-.edm-toggle-track {
+.wubdle-toggle input { display: none; }
+.wubdle-toggle-track {
   width: 40px;
   height: 22px;
   border-radius: 22px;
@@ -180,7 +180,7 @@ body.edm-wordle-page {
   position: relative;
   transition: background 0.2s ease;
 }
-.edm-toggle-thumb {
+.wubdle-toggle-thumb {
   position: absolute;
   top: 2px;
   left: 2px;
@@ -190,15 +190,15 @@ body.edm-wordle-page {
   background: #fff;
   transition: transform 0.2s ease;
 }
-.edm-toggle input:checked + .edm-toggle-track {
-  background: linear-gradient(120deg, var(--edm-cyan), var(--edm-magenta));
+.wubdle-toggle input:checked + .wubdle-toggle-track {
+  background: linear-gradient(120deg, var(--wubdle-cyan), var(--wubdle-magenta));
 }
-.edm-toggle input:checked + .edm-toggle-track .edm-toggle-thumb { transform: translateX(18px); }
+.wubdle-toggle input:checked + .wubdle-toggle-track .wubdle-toggle-thumb { transform: translateX(18px); }
 
 /* ─── Guess form ─── */
-.edm-guess-form { margin: 0 auto 14px; max-width: 620px; }
-.edm-input-wrap { position: relative; display: flex; gap: 8px; }
-.edm-input-wrap > input {
+.wubdle-guess-form { margin: 0 auto 14px; max-width: 620px; }
+.wubdle-input-wrap { position: relative; display: flex; gap: 8px; }
+.wubdle-input-wrap > input {
   flex: 1;
   min-width: 0;
   background: rgba(255, 255, 255, 0.07);
@@ -208,15 +208,15 @@ body.edm-wordle-page {
   color: #fff;
   font-size: 1.05rem;
 }
-.edm-input-wrap > .edm-btn { white-space: nowrap; }
-.edm-input-wrap > input:focus {
+.wubdle-input-wrap > .wubdle-btn { white-space: nowrap; }
+.wubdle-input-wrap > input:focus {
   outline: none;
-  border-color: var(--edm-cyan);
+  border-color: var(--wubdle-cyan);
   box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.18);
 }
-.edm-input-wrap > input::placeholder { color: #8a87a8; }
+.wubdle-input-wrap > input::placeholder { color: #8a87a8; }
 
-.edm-suggestions {
+.wubdle-suggestions {
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
@@ -230,7 +230,7 @@ body.edm-wordle-page {
   z-index: 20;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
 }
-.edm-suggestions li button {
+.wubdle-suggestions li button {
   display: block;
   width: 100%;
   text-align: left;
@@ -242,9 +242,9 @@ body.edm-wordle-page {
   cursor: pointer;
   font-size: 0.95rem;
 }
-.edm-suggestions li button:hover { background: rgba(0, 229, 255, 0.14); color: #fff; }
+.wubdle-suggestions li button:hover { background: rgba(0, 229, 255, 0.14); color: #fff; }
 
-.edm-message {
+.wubdle-message {
   text-align: center;
   color: #ffd166;
   margin: 4px auto 14px;
@@ -252,7 +252,7 @@ body.edm-wordle-page {
 }
 
 /* ─── Win banner ─── */
-.edm-win {
+.wubdle-win {
   text-align: center;
   background: linear-gradient(135deg, rgba(0, 229, 255, 0.12), rgba(255, 0, 229, 0.12));
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -261,8 +261,8 @@ body.edm-wordle-page {
   margin-bottom: 20px;
   box-shadow: 0 0 50px rgba(124, 77, 255, 0.3);
 }
-.edm-win h2 { margin: 0 0 6px; font-size: 1.8rem; }
-.edm-win-badge {
+.wubdle-win h2 { margin: 0 0 6px; font-size: 1.8rem; }
+.wubdle-win-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -276,21 +276,21 @@ body.edm-wordle-page {
   font-weight: 600;
   letter-spacing: 0.03em;
 }
-.edm-win-badge code {
+.wubdle-win-badge code {
   font-family: 'Courier New', monospace;
-  color: var(--edm-cyan);
+  color: var(--wubdle-cyan);
   letter-spacing: 0.1em;
 }
-.edm-win p { margin: 4px 0; color: #e6e4fb; }
-.edm-win-seed code {
+.wubdle-win p { margin: 4px 0; color: #e6e4fb; }
+.wubdle-win-seed code {
   font-family: 'Courier New', monospace;
-  color: var(--edm-cyan);
+  color: var(--wubdle-cyan);
   letter-spacing: 0.1em;
 }
-.edm-win-actions { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
+.wubdle-win-actions { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
 
 /* ─── Give up ─── */
-.edm-giveup {
+.wubdle-giveup {
   text-align: center;
   background: linear-gradient(135deg, rgba(255, 70, 90, 0.14), rgba(60, 60, 80, 0.22));
   border: 1px solid rgba(255, 90, 120, 0.35);
@@ -299,26 +299,26 @@ body.edm-wordle-page {
   margin-bottom: 20px;
   box-shadow: 0 0 40px rgba(255, 70, 90, 0.18);
 }
-.edm-giveup h2 { margin: 0 0 6px; font-size: 1.7rem; color: #ff9aa9; }
-.edm-giveup p { margin: 4px 0; color: #e2dde6; }
-.edm-answer-row .edm-attr.answer {
+.wubdle-giveup h2 { margin: 0 0 6px; font-size: 1.7rem; color: #ff9aa9; }
+.wubdle-giveup p { margin: 4px 0; color: #e2dde6; }
+.wubdle-answer-row .wubdle-attr.answer {
   background: linear-gradient(135deg, #d8a531, #b8860b);
   color: #1a1206;
   box-shadow: 0 0 16px rgba(216, 165, 49, 0.4);
 }
-.edm-answer-row .edm-name-cell {
+.wubdle-answer-row .wubdle-name-cell {
   background: rgba(216, 165, 49, 0.18);
   color: #ffe2a0;
 }
 
 /* ─── Board ─── */
-.edm-board { display: flex; flex-direction: column; gap: 6px; width: 100%; }
-.edm-row {
+.wubdle-board { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.wubdle-row {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) repeat(7, minmax(0, 1fr));
   gap: 4px;
 }
-.edm-row-head .edm-cell {
+.wubdle-row-head .wubdle-cell {
   background: transparent;
   color: #9b97c0;
   font-size: clamp(0.5rem, 1.4vw, 0.72rem);
@@ -329,7 +329,7 @@ body.edm-wordle-page {
   box-shadow: none;
   overflow-wrap: anywhere;
 }
-.edm-cell {
+.wubdle-cell {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -345,7 +345,7 @@ body.edm-wordle-page {
   word-break: break-word;
   hyphens: auto;
 }
-.edm-name-cell {
+.wubdle-name-cell {
   background: rgba(255, 255, 255, 0.06);
   color: #fff;
   font-weight: 700;
@@ -353,28 +353,28 @@ body.edm-wordle-page {
   text-align: left;
   padding-left: 8px;
 }
-.edm-attr {
+.wubdle-attr {
   color: #fff;
-  animation: edm-flip 0.4s ease both;
+  animation: wubdle-flip 0.4s ease both;
 }
-.edm-attr.match {
-  background: linear-gradient(135deg, var(--edm-green), #16863f);
-  box-shadow: 0 0 16px var(--edm-green-glow);
+.wubdle-attr.match {
+  background: linear-gradient(135deg, var(--wubdle-green), #16863f);
+  box-shadow: 0 0 16px var(--wubdle-green-glow);
 }
-.edm-attr.miss {
-  background: linear-gradient(135deg, var(--edm-red), #c01f3f);
-  box-shadow: 0 0 14px var(--edm-red-glow);
+.wubdle-attr.miss {
+  background: linear-gradient(135deg, var(--wubdle-red), #c01f3f);
+  box-shadow: 0 0 14px var(--wubdle-red-glow);
 }
-.edm-attr-val { line-height: 1.15; }
-.edm-hint { font-size: 0.95rem; margin-top: 2px; opacity: 0.95; }
+.wubdle-attr-val { line-height: 1.15; }
+.wubdle-hint { font-size: 0.95rem; margin-top: 2px; opacity: 0.95; }
 
-@keyframes edm-flip {
+@keyframes wubdle-flip {
   0% { transform: rotateX(-90deg); opacity: 0; }
   100% { transform: rotateX(0); opacity: 1; }
 }
 
 /* ─── Confirm modal ─── */
-.edm-modal-overlay {
+.wubdle-modal-overlay {
   position: fixed;
   inset: 0;
   z-index: 100;
@@ -384,9 +384,9 @@ body.edm-wordle-page {
   padding: 20px;
   background: rgba(7, 7, 15, 0.72);
   backdrop-filter: blur(6px);
-  animation: edm-fade 0.18s ease both;
+  animation: wubdle-fade 0.18s ease both;
 }
-.edm-modal {
+.wubdle-modal {
   width: 100%;
   max-width: 400px;
   text-align: center;
@@ -395,24 +395,24 @@ body.edm-wordle-page {
   border-radius: 18px;
   padding: 26px 24px 22px;
   box-shadow: 0 0 60px rgba(124, 77, 255, 0.35), 0 20px 50px rgba(0, 0, 0, 0.5);
-  animation: edm-pop 0.2s ease both;
+  animation: wubdle-pop 0.2s ease both;
 }
-.edm-modal-message {
+.wubdle-modal-message {
   margin: 0 0 20px;
   color: #ece9ff;
   font-size: 1.05rem;
   line-height: 1.45;
 }
-.edm-modal-actions { display: flex; gap: 10px; justify-content: center; }
-.edm-modal-actions .edm-btn { min-width: 110px; }
+.wubdle-modal-actions { display: flex; gap: 10px; justify-content: center; }
+.wubdle-modal-actions .wubdle-btn { min-width: 110px; }
 
-@keyframes edm-fade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes edm-pop {
+@keyframes wubdle-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes wubdle-pop {
   from { opacity: 0; transform: translateY(8px) scale(0.96); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @media (max-width: 600px) {
-  .edm-controls { gap: 10px; }
-  .edm-seed-play input { width: 130px; }
+  .wubdle-controls { gap: 10px; }
+  .wubdle-seed-play input { width: 130px; }
 }

@@ -2,15 +2,15 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Papa from 'papaparse';
 import confetti from 'canvas-confetti';
-import './EdmWordle.css';
+import './Wubdle.css';
 
 const STORAGE = {
-  seed: 'edmWordle.seed',
-  guesses: 'edmWordle.guesses',
-  won: 'edmWordle.won',
-  gaveUp: 'edmWordle.gaveUp',
-  typeAssist: 'edmWordle.typeAssist',
-  seeded: 'edmWordle.seeded',
+  seed: 'wubdle.seed',
+  guesses: 'wubdle.guesses',
+  won: 'wubdle.won',
+  gaveUp: 'wubdle.gaveUp',
+  typeAssist: 'wubdle.typeAssist',
+  seeded: 'wubdle.seeded',
 };
 
 const MEMBER_ORDER = ['Solo', 'Duo', 'Trio', 'Quartet', 'Quintet', 'Collective'];
@@ -81,7 +81,7 @@ function getInitialSeed() {
   return { seed: makeSeed(), fresh: true, seeded: false };
 }
 
-function EdmWordle() {
+function Wubdle() {
   const [artists, setArtists] = useState([]);
   const [loaded, setLoaded] = useState(false);
 
@@ -125,13 +125,13 @@ function EdmWordle() {
 
   /* Scope page-level body background to this route only */
   useEffect(() => {
-    document.body.classList.add('edm-wordle-page');
-    return () => document.body.classList.remove('edm-wordle-page');
+    document.body.classList.add('wubdle-page');
+    return () => document.body.classList.remove('wubdle-page');
   }, []);
 
   /* Load dataset */
   useEffect(() => {
-    Papa.parse('/edm-artists.csv', {
+    Papa.parse('/wubdle-artists.csv', {
       download: true,
       header: true,
       skipEmptyLines: true,
@@ -313,32 +313,32 @@ function EdmWordle() {
   }
 
   return (
-    <div className="edm-wordle">
-      <Link to="/" className="edm-home-link">← Home</Link>
+    <div className="wubdle">
+      <Link to="/" className="wubdle-home-link">← Home</Link>
 
-      <header className="edm-header">
-        <div className="edm-waves" aria-hidden="true">
+      <header className="wubdle-header">
+        <div className="wubdle-waves" aria-hidden="true">
           {Array.from({ length: 28 }).map((_, i) => (
             <span key={i} style={{ animationDelay: `${(i % 14) * 0.07}s` }} />
           ))}
         </div>
-        <h1 className="edm-title">WUB<span>DLE</span></h1>
-        <p className="edm-tagline">Match the clues. Guess the EDM artist.</p>
+        <h1 className="wubdle-title">WUB<span>DLE</span></h1>
+        <p className="wubdle-tagline">Match the clues. Guess the EDM artist.</p>
       </header>
 
-      {!loaded && <p className="edm-loading">Loading artists…</p>}
+      {!loaded && <p className="wubdle-loading">Loading artists…</p>}
 
       {loaded && (
-        <main className="edm-main">
-          <div className="edm-controls">
-            <div className="edm-seed-row">
-              <span className="edm-seed-label">Seed</span>
-              <code className="edm-seed-value">{seed}</code>
-              <button className="edm-btn ghost" onClick={() => newGame()}>New Game</button>
+        <main className="wubdle-main">
+          <div className="wubdle-controls">
+            <div className="wubdle-seed-row">
+              <span className="wubdle-seed-label">Seed</span>
+              <code className="wubdle-seed-value">{seed}</code>
+              <button className="wubdle-btn ghost" onClick={() => newGame()}>New Game</button>
             </div>
 
             <form
-              className="edm-seed-play"
+              className="wubdle-seed-play"
               onSubmit={(e) => {
                 e.preventDefault();
                 if (seedInput.trim()) newGame(seedInput.trim());
@@ -350,60 +350,60 @@ function EdmWordle() {
                 value={seedInput}
                 onChange={(e) => setSeedInput(e.target.value)}
               />
-              <button className="edm-btn" type="submit">Go</button>
+              <button className="wubdle-btn" type="submit">Go</button>
             </form>
 
-            <label className="edm-toggle">
+            <label className="wubdle-toggle">
               <input
                 type="checkbox"
                 checked={typeAssist}
                 onChange={(e) => setTypeAssist(e.target.checked)}
               />
-              <span className="edm-toggle-track"><span className="edm-toggle-thumb" /></span>
+              <span className="wubdle-toggle-track"><span className="wubdle-toggle-thumb" /></span>
               Type assist
             </label>
           </div>
 
           {won && answer && (
-            <div className="edm-win">
+            <div className="wubdle-win">
               <h2>🎆 You got it!</h2>
               {seeded && (
-                <p className="edm-win-badge">🌱 Seeded run · <code>{seed}</code></p>
+                <p className="wubdle-win-badge">🌱 Seeded run · <code>{seed}</code></p>
               )}
               <p>
                 The artist was <strong>{answer.name}</strong>. You nailed it in{' '}
                 <strong>{guesses.length}</strong> {guesses.length === 1 ? 'guess' : 'guesses'}.
               </p>
-              <p className="edm-win-seed">
+              <p className="wubdle-win-seed">
                 Challenge a friend with seed <code>{seed}</code>
               </p>
-              <div className="edm-win-actions">
-                <button className="edm-btn" onClick={shareSeed}>Share result</button>
-                <button className="edm-btn ghost" onClick={() => newGame()}>Play again</button>
+              <div className="wubdle-win-actions">
+                <button className="wubdle-btn" onClick={shareSeed}>Share result</button>
+                <button className="wubdle-btn ghost" onClick={() => newGame()}>Play again</button>
               </div>
             </div>
           )}
 
           {gaveUp && answer && (
-            <div className="edm-giveup">
+            <div className="wubdle-giveup">
               <h2>🏳️ You gave up</h2>
               <p>
                 The answer was <strong>{answer.name}</strong> — you made{' '}
                 <strong>{guesses.length}</strong> {guesses.length === 1 ? 'guess' : 'guesses'} before
                 giving up.
               </p>
-              <p className="edm-win-seed">
+              <p className="wubdle-win-seed">
                 Want a rematch? Seed <code>{seed}</code>
               </p>
-              <div className="edm-win-actions">
-                <button className="edm-btn" onClick={() => newGame()}>New Game</button>
+              <div className="wubdle-win-actions">
+                <button className="wubdle-btn" onClick={() => newGame()}>New Game</button>
               </div>
             </div>
           )}
 
           {!won && !gaveUp && (
-            <form className="edm-guess-form" onSubmit={handleSubmit} autoComplete="off">
-              <div className="edm-input-wrap">
+            <form className="wubdle-guess-form" onSubmit={handleSubmit} autoComplete="off">
+              <div className="wubdle-input-wrap">
                 <input
                   ref={inputRef}
                   type="text"
@@ -414,12 +414,12 @@ function EdmWordle() {
                     if (message) setMessage('');
                   }}
                 />
-                <button className="edm-btn" type="submit">Guess</button>
-                <button type="button" className="edm-btn giveup" onClick={giveUp}>
+                <button className="wubdle-btn" type="submit">Guess</button>
+                <button type="button" className="wubdle-btn giveup" onClick={giveUp}>
                   Give up
                 </button>
                 {suggestions.length > 0 && (
-                  <ul className="edm-suggestions">
+                  <ul className="wubdle-suggestions">
                     {suggestions.map((a) => (
                       <li key={a.name}>
                         <button type="button" onClick={() => submitGuess(a.name)}>
@@ -433,22 +433,22 @@ function EdmWordle() {
             </form>
           )}
 
-          {message && <p className="edm-message">{message}</p>}
+          {message && <p className="wubdle-message">{message}</p>}
 
           {(guessedArtists.length > 0 || (gaveUp && answer)) && (
-            <div className="edm-board">
-              <div className="edm-row edm-row-head">
-                <div className="edm-cell edm-name-cell">Artist</div>
+            <div className="wubdle-board">
+              <div className="wubdle-row wubdle-row-head">
+                <div className="wubdle-cell wubdle-name-cell">Artist</div>
                 {ATTRIBUTES.map((attr) => (
-                  <div key={attr.key} className="edm-cell">{attr.label}</div>
+                  <div key={attr.key} className="wubdle-cell">{attr.label}</div>
                 ))}
               </div>
               {gaveUp && answer && (
-                <div className="edm-row edm-answer-row">
-                  <div className="edm-cell edm-name-cell">{answer.name}</div>
+                <div className="wubdle-row wubdle-answer-row">
+                  <div className="wubdle-cell wubdle-name-cell">{answer.name}</div>
                   {ATTRIBUTES.map((attr) => (
-                    <div key={attr.key} className="edm-cell edm-attr answer">
-                      <span className="edm-attr-val">{answer[attr.key] || '—'}</span>
+                    <div key={attr.key} className="wubdle-cell wubdle-attr answer">
+                      <span className="wubdle-attr-val">{answer[attr.key] || '—'}</span>
                     </div>
                   ))}
                 </div>
@@ -457,17 +457,17 @@ function EdmWordle() {
                 .slice()
                 .reverse()
                 .map((g) => (
-                  <div className="edm-row" key={g.name}>
-                    <div className="edm-cell edm-name-cell">{g.name}</div>
+                  <div className="wubdle-row" key={g.name}>
+                    <div className="wubdle-cell wubdle-name-cell">{g.name}</div>
                     {ATTRIBUTES.map((attr) => {
                       const { match, hint } = cellState(attr.key, g[attr.key]);
                       return (
                         <div
                           key={attr.key}
-                          className={`edm-cell edm-attr ${match ? 'match' : 'miss'}`}
+                          className={`wubdle-cell wubdle-attr ${match ? 'match' : 'miss'}`}
                         >
-                          <span className="edm-attr-val">{g[attr.key] || '—'}</span>
-                          {hint && <span className="edm-hint">{hint}</span>}
+                          <span className="wubdle-attr-val">{g[attr.key] || '—'}</span>
+                          {hint && <span className="wubdle-hint">{hint}</span>}
                         </div>
                       );
                     })}
@@ -479,20 +479,20 @@ function EdmWordle() {
       )}
 
       {confirmState && (
-        <div className="edm-modal-overlay" onClick={() => setConfirmState(null)}>
+        <div className="wubdle-modal-overlay" onClick={() => setConfirmState(null)}>
           <div
-            className="edm-modal"
+            className="wubdle-modal"
             role="dialog"
             aria-modal="true"
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="edm-modal-message">{confirmState.message}</p>
-            <div className="edm-modal-actions">
-              <button className="edm-btn ghost" onClick={() => setConfirmState(null)}>
+            <p className="wubdle-modal-message">{confirmState.message}</p>
+            <div className="wubdle-modal-actions">
+              <button className="wubdle-btn ghost" onClick={() => setConfirmState(null)}>
                 {confirmState.cancelLabel || 'Cancel'}
               </button>
               <button
-                className="edm-btn"
+                className="wubdle-btn"
                 onClick={() => {
                   const cb = confirmState.onConfirm;
                   setConfirmState(null);
@@ -509,4 +509,4 @@ function EdmWordle() {
   );
 }
 
-export default EdmWordle;
+export default Wubdle;
