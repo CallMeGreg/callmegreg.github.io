@@ -10,6 +10,7 @@ const STORAGE = {
   won: 'edmWordle.won',
   gaveUp: 'edmWordle.gaveUp',
   typeAssist: 'edmWordle.typeAssist',
+  seeded: 'edmWordle.seeded',
 };
 
 const MEMBER_ORDER = ['Solo', 'Duo', 'Trio', 'Quartet', 'Quintet', 'Collective'];
@@ -71,10 +72,13 @@ function getInitialSeed() {
   const saved = localStorage.getItem(STORAGE.seed);
   if (fromUrl) {
     const upper = fromUrl.toUpperCase();
-    return { seed: upper, fresh: upper !== (saved || '') };
+    return { seed: upper, fresh: upper !== (saved || ''), seeded: true };
   }
-  if (saved) return { seed: saved, fresh: false };
-  return { seed: makeSeed(), fresh: true };
+  if (saved) {
+    const savedSeeded = localStorage.getItem(STORAGE.seeded);
+    return { seed: saved, fresh: false, seeded: savedSeeded ? JSON.parse(savedSeeded) : false };
+  }
+  return { seed: makeSeed(), fresh: true, seeded: false };
 }
 
 function EdmWordle() {
@@ -84,6 +88,7 @@ function EdmWordle() {
   const initialSeed = useRef(getInitialSeed());
 
   const [seed, setSeed] = useState(initialSeed.current.seed);
+  const [seeded, setSeeded] = useState(initialSeed.current.seeded);
 
   const [guesses, setGuesses] = useState(() => {
     if (initialSeed.current.fresh) return [];
@@ -153,6 +158,9 @@ function EdmWordle() {
   useEffect(() => {
     localStorage.setItem(STORAGE.seed, seed);
   }, [seed]);
+  useEffect(() => {
+    localStorage.setItem(STORAGE.seeded, JSON.stringify(seeded));
+  }, [seeded]);
   useEffect(() => {
     localStorage.setItem(STORAGE.guesses, JSON.stringify(guesses));
   }, [guesses]);
@@ -232,6 +240,7 @@ function EdmWordle() {
   function doNewGame(customSeed) {
     const next = (customSeed || makeSeed()).toUpperCase();
     setSeed(next);
+    setSeeded(!!customSeed);
     setGuesses([]);
     setWon(false);
     setGaveUp(false);
@@ -358,6 +367,9 @@ function EdmWordle() {
           {won && answer && (
             <div className="edm-win">
               <h2>🎆 You got it!</h2>
+              {seeded && (
+                <p className="edm-win-badge">🌱 Seeded run · <code>{seed}</code></p>
+              )}
               <p>
                 The artist was <strong>{answer.name}</strong>. You nailed it in{' '}
                 <strong>{guesses.length}</strong> {guesses.length === 1 ? 'guess' : 'guesses'}.
