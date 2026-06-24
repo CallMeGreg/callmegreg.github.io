@@ -9,7 +9,6 @@ const STORAGE = {
   guesses: 'wubdle.guesses',
   won: 'wubdle.won',
   gaveUp: 'wubdle.gaveUp',
-  typeAssist: 'wubdle.typeAssist',
   seeded: 'wubdle.seeded',
   isDaily: 'wubdle.isDaily',
   dailyDone: 'wubdle.dailyDone',
@@ -20,14 +19,252 @@ const ALPHA_GROUPS = ['A-M', 'N-Z'];
 const STREAM_ORDER = ['<1M', '1M-2.5M', '2.5M-5M', '5M-10M', '10M+'];
 
 const ATTRIBUTES = [
-  { key: 'alphabet', label: 'Alphabet', order: ALPHA_GROUPS, reverseHint: true },
-  { key: 'members', label: 'Members', order: MEMBER_ORDER },
-  { key: 'gender', label: 'Gender' },
-  { key: 'location', label: 'Location' },
-  { key: 'subgenre', label: 'Subgenre' },
-  { key: 'debut', label: 'First Record', numeric: true },
-  { key: 'streams', label: 'Monthly Spotify', order: STREAM_ORDER },
+  { key: 'alphabet', label: 'Alphabet', short: 'Name', order: ALPHA_GROUPS, reverseHint: true },
+  { key: 'members', label: 'Members', short: 'Members', order: MEMBER_ORDER },
+  { key: 'gender', label: 'Gender', short: 'Gender' },
+  { key: 'location', label: 'Location', short: 'Location' },
+  { key: 'subgenre', label: 'Subgenre', short: 'Subgenre' },
+  { key: 'debut', label: 'First Record', short: 'Debut', numeric: true },
+  { key: 'streams', label: 'Monthly Spotify', short: 'Spotify', order: STREAM_ORDER },
 ];
+
+/* ─── Attribute icons ───────────────────────────────────────────────
+   Themed line-icons (24×24, currentColor stroke) used in place of the
+   text column headers. Each attribute lists a primary option first,
+   followed by backup options so the look can be compared live. */
+function Glyph({ children }) {
+  return (
+    <svg
+      className="wubdle-icon"
+      viewBox="0 0 24 24"
+      width="100%"
+      height="100%"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {children}
+    </svg>
+  );
+}
+
+const ATTR_ICONS = {
+  alphabet: [
+    { label: 'Letterform', glyph: <Glyph><path d="M5 19 11 5l6 14" /><path d="M7.5 14h7" /></Glyph> },
+    {
+      label: 'A→Z sort',
+      glyph: (
+        <Glyph>
+          <path d="M4 7h7M4 12h5M4 17h3" />
+          <path d="M17 5v13" />
+          <path d="M14 15l3 3 3-3" />
+        </Glyph>
+      ),
+    },
+    {
+      label: 'Dictionary',
+      glyph: (
+        <Glyph>
+          <path d="M5 4h11a1 1 0 0 1 1 1v15H6a1 1 0 0 1-1-1z" />
+          <path d="M5 17h12" />
+        </Glyph>
+      ),
+    },
+  ],
+  members: [
+    {
+      label: 'People',
+      glyph: (
+        <Glyph>
+          <circle cx="9" cy="8" r="3" />
+          <path d="M3.5 20c0-3 2.5-5 5.5-5s5.5 2 5.5 5" />
+          <path d="M16 6a3 3 0 0 1 0 6" />
+          <path d="M21 20c0-2.4-1.4-4-3.4-4.7" />
+        </Glyph>
+      ),
+    },
+    {
+      label: 'Group',
+      glyph: (
+        <Glyph>
+          <circle cx="12" cy="7" r="2.5" />
+          <circle cx="5.5" cy="11" r="2" />
+          <circle cx="18.5" cy="11" r="2" />
+          <path d="M7 20c0-2.8 2.2-4.5 5-4.5s5 1.7 5 4.5" />
+        </Glyph>
+      ),
+    },
+    {
+      label: 'Add member',
+      glyph: (
+        <Glyph>
+          <circle cx="10" cy="8" r="3" />
+          <path d="M4 20c0-3 2.7-5 6-5" />
+          <path d="M18 13v6M15 16h6" />
+        </Glyph>
+      ),
+    },
+  ],
+  gender: [
+    {
+      label: 'Venus + Mars',
+      glyph: (
+        <Glyph>
+          <circle cx="11" cy="13" r="4.2" />
+          <path d="M14 10l4.5-4.5M14.5 5.5H19V10" />
+          <path d="M11 17.2V21M9 19.2h4" />
+        </Glyph>
+      ),
+    },
+    {
+      label: 'M / F figures',
+      glyph: (
+        <Glyph>
+          <circle cx="8" cy="6" r="2" />
+          <path d="M8 8v6M5.5 11h5M8 14l-2 6M8 14l2 6" />
+          <circle cx="16.5" cy="6" r="2" />
+          <path d="M16.5 8c-2 0-3 1.4-3 4l1.2.5L15 20h3l.3-7.5 1.2-.5c0-2.6-1-4-3-4z" />
+        </Glyph>
+      ),
+    },
+    {
+      label: 'Symbols',
+      glyph: (
+        <Glyph>
+          <circle cx="8" cy="9" r="3" />
+          <path d="M8 12v6M5.5 15.5h5" />
+          <circle cx="16.5" cy="14" r="3" />
+          <path d="M18.6 11.9 22 8.5M19 8.5h3v3" />
+        </Glyph>
+      ),
+    },
+  ],
+  location: [
+    {
+      label: 'Map pin',
+      glyph: (
+        <Glyph>
+          <path d="M12 21s6.5-5.5 6.5-11a6.5 6.5 0 1 0-13 0C5.5 15.5 12 21 12 21z" />
+          <circle cx="12" cy="10" r="2.4" />
+        </Glyph>
+      ),
+    },
+    {
+      label: 'Globe',
+      glyph: (
+        <Glyph>
+          <circle cx="12" cy="12" r="8" />
+          <path d="M4 12h16" />
+          <path d="M12 4c2.5 2.6 2.5 13.4 0 16M12 4c-2.5 2.6-2.5 13.4 0 16" />
+        </Glyph>
+      ),
+    },
+    {
+      label: 'Flag',
+      glyph: (
+        <Glyph>
+          <path d="M6 21V4" />
+          <path d="M6 4h11l-2 3.5L17 11H6" />
+        </Glyph>
+      ),
+    },
+  ],
+  subgenre: [
+    {
+      label: 'Music note',
+      glyph: (
+        <Glyph>
+          <path d="M10 18V6l8-2v10" />
+          <circle cx="7.5" cy="18" r="2.5" />
+          <circle cx="15.5" cy="16" r="2.5" />
+        </Glyph>
+      ),
+    },
+    {
+      label: 'Tag',
+      glyph: (
+        <Glyph>
+          <path d="M3.5 12 12 3.5h7v7L10.5 19z" />
+          <circle cx="15.3" cy="7.7" r="1.2" />
+        </Glyph>
+      ),
+    },
+    {
+      label: 'Mixer',
+      glyph: (
+        <Glyph>
+          <path d="M6 4v16M12 4v16M18 4v16" />
+          <circle cx="6" cy="9" r="2" />
+          <circle cx="12" cy="15" r="2" />
+          <circle cx="18" cy="8" r="2" />
+        </Glyph>
+      ),
+    },
+  ],
+  debut: [
+    {
+      label: 'Vinyl',
+      glyph: (
+        <Glyph>
+          <circle cx="12" cy="12" r="9" />
+          <circle cx="12" cy="12" r="3.2" />
+          <circle cx="12" cy="12" r="0.6" fill="currentColor" />
+        </Glyph>
+      ),
+    },
+    {
+      label: 'Calendar',
+      glyph: (
+        <Glyph>
+          <rect x="4" y="5" width="16" height="15" rx="2" />
+          <path d="M4 9.5h16M8 3v4M16 3v4" />
+        </Glyph>
+      ),
+    },
+    {
+      label: 'Clock',
+      glyph: (
+        <Glyph>
+          <circle cx="12" cy="12" r="8" />
+          <path d="M12 8v4.3l3 1.7" />
+        </Glyph>
+      ),
+    },
+  ],
+  streams: [
+    {
+      label: 'Headphones',
+      glyph: (
+        <Glyph>
+          <path d="M4 13v-1a8 8 0 0 1 16 0v1" />
+          <rect x="3" y="13" width="4" height="7" rx="1.6" />
+          <rect x="17" y="13" width="4" height="7" rx="1.6" />
+        </Glyph>
+      ),
+    },
+    {
+      label: 'Play',
+      glyph: (
+        <Glyph>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M10 8.3 16 12l-6 3.7z" fill="currentColor" stroke="none" />
+        </Glyph>
+      ),
+    },
+    {
+      label: 'Waveform',
+      glyph: (
+        <Glyph>
+          <path d="M4 10v4M8 6.5v11M12 9v6M16 4v16M20 10v4" />
+        </Glyph>
+      ),
+    },
+  ],
+};
 
 /* ─── Seeded RNG helpers ─── */
 function hashString(str) {
@@ -146,11 +383,6 @@ function Wubdle() {
     return saved ? JSON.parse(saved) : false;
   });
 
-  const [typeAssist, setTypeAssist] = useState(() => {
-    const saved = localStorage.getItem(STORAGE.typeAssist);
-    return saved ? JSON.parse(saved) : false;
-  });
-
   const [isDaily, setIsDaily] = useState(() => {
     if (initialSeed.current.fresh) return false;
     const saved = localStorage.getItem(STORAGE.isDaily);
@@ -227,9 +459,6 @@ function Wubdle() {
     localStorage.setItem(STORAGE.gaveUp, JSON.stringify(gaveUp));
   }, [gaveUp]);
   useEffect(() => {
-    localStorage.setItem(STORAGE.typeAssist, JSON.stringify(typeAssist));
-  }, [typeAssist]);
-  useEffect(() => {
     localStorage.setItem(STORAGE.isDaily, JSON.stringify(isDaily));
   }, [isDaily]);
   useEffect(() => {
@@ -271,13 +500,13 @@ function Wubdle() {
   );
 
   const suggestions = useMemo(() => {
-    if (!typeAssist || !input.trim()) return [];
+    if (!input.trim()) return [];
     const q = normalize(input);
     const guessedSet = new Set(guesses);
     return artists
       .filter((a) => normalize(a.name).startsWith(q) && !guessedSet.has(a.name))
       .slice(0, 8);
-  }, [typeAssist, input, artists, guesses]);
+  }, [input, artists, guesses]);
 
   function submitGuess(rawName) {
     if (won || gaveUp) return;
@@ -460,16 +689,6 @@ function Wubdle() {
                 <button className="wubdle-btn" type="submit">Go</button>
               </form>
             </div>
-
-            <label className="wubdle-toggle">
-              <input
-                type="checkbox"
-                checked={typeAssist}
-                onChange={(e) => setTypeAssist(e.target.checked)}
-              />
-              <span className="wubdle-toggle-track"><span className="wubdle-toggle-thumb" /></span>
-              Type assist
-            </label>
           </div>
 
           {won && answer && (
@@ -551,9 +770,21 @@ function Wubdle() {
             <div className="wubdle-board">
               <div className="wubdle-row wubdle-row-head">
                 <div className="wubdle-cell wubdle-name-cell">Artist</div>
-                {ATTRIBUTES.map((attr) => (
-                  <div key={attr.key} className="wubdle-cell">{attr.label}</div>
-                ))}
+                {ATTRIBUTES.map((attr) => {
+                  const variant = ATTR_ICONS[attr.key][0];
+                  return (
+                    <div
+                      key={attr.key}
+                      className="wubdle-cell wubdle-head-cell labeled"
+                      title={attr.label}
+                    >
+                      <span className="wubdle-head-icon">
+                        {variant.glyph}
+                        <span className="wubdle-head-label">{attr.short}</span>
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
               {gaveUp && answer && (
                 <div className="wubdle-row wubdle-answer-row">
