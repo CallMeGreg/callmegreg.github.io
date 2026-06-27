@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="DROPKIT">
+  <defs>
+    <linearGradient id="dk-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1a0033"/>
+      <stop offset="0.5" stop-color="#0b0118"/>
+      <stop offset="1" stop-color="#001a26"/>
+    </linearGradient>
+    <linearGradient id="dk-neon" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#00f6ff"/>
+      <stop offset="0.5" stop-color="#a64bff"/>
+      <stop offset="1" stop-color="#ff2bd6"/>
+    </linearGradient>
+    <filter id="dk-glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="64" fill="url(#dk-bg)"/>
+
+  <!-- concentric drop rings -->
+  <g fill="none" stroke="url(#dk-neon)" filter="url(#dk-glow)" opacity="0.35">
+    <circle cx="256" cy="232" r="150" stroke-width="2"/>
+    <circle cx="256" cy="232" r="110" stroke-width="2"/>
+  </g>
+
+  <!-- waveform -->
+  <g filter="url(#dk-glow)">
+    <g fill="url(#dk-neon)">
+      <rect x="92"  y="208" width="14" height="48"  rx="7"/>
+      <rect x="120" y="184" width="14" height="96"  rx="7"/>
+      <rect x="148" y="150" width="14" height="164" rx="7"/>
+      <rect x="176" y="196" width="14" height="72"  rx="7"/>
+      <rect x="204" y="120" width="14" height="224" rx="7"/>
+      <rect x="232" y="168" width="14" height="128" rx="7"/>
+      <rect x="260" y="92"  width="14" height="280" rx="7"/>
+      <rect x="288" y="160" width="14" height="144" rx="7"/>
+      <rect x="316" y="128" width="14" height="208" rx="7"/>
+      <rect x="344" y="186" width="14" height="92"  rx="7"/>
+      <rect x="372" y="150" width="14" height="164" rx="7"/>
+      <rect x="400" y="190" width="14" height="84"  rx="7"/>
+    </g>
+  </g>
+
+  <!-- key / musical note motif -->
+  <g filter="url(#dk-glow)" fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M196 392 v-70 l120 -26 v70" />
+  </g>
+  <g filter="url(#dk-glow)" fill="#ffffff">
+    <circle cx="196" cy="392" r="18"/>
+    <circle cx="316" cy="366" r="18"/>
+  </g>
+
+  <text x="256" y="470" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="56" font-weight="900" letter-spacing="6" fill="url(#dk-neon)" filter="url(#dk-glow)">DROPKIT</text>
+</svg>
