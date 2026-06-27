@@ -104,6 +104,27 @@ function scUrl(t) {
   return 'https://soundcloud.com/search?q=' + encodeURIComponent(`${t.artist} ${t.title}`);
 }
 
+// Best link for a track: the verified permalink if we have one, else a search.
+function trackLink(t) {
+  return t.soundcloudUrl || scUrl(t);
+}
+
+// SoundCloud embed player URL (public widget, no API key required).
+function embedUrl(permalink) {
+  const params = new URLSearchParams({
+    url: permalink,
+    color: '#a64bff',
+    auto_play: 'true',
+    hide_related: 'true',
+    show_comments: 'false',
+    show_user: 'true',
+    show_reposts: 'false',
+    show_teaser: 'false',
+    visual: 'false',
+  });
+  return 'https://w.soundcloud.com/player/?' + params.toString();
+}
+
 function matchBadge(track, target, allowHalfDouble, tolerance) {
   const ks = keyScore(track.camelot, target.key);
   const { dist, shift } = bpmMatch(track.bpm, target.bpm, allowHalfDouble);
@@ -132,6 +153,7 @@ function Dropkit() {
 
   const [copied, setCopied] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [playingId, setPlayingId] = useState(null);
 
   /* Load curated track data */
   useEffect(() => {
@@ -152,6 +174,7 @@ function Dropkit() {
             bpm: Number(r.bpm),
             tier: r.tier.trim(),
             vibe: r.vibe.trim(),
+            soundcloudUrl: (r.soundcloudUrl || '').trim(),
           }));
         setTracks(rows);
         setLoading(false);
@@ -177,6 +200,7 @@ function Dropkit() {
     setTargetKey(preset.key);
     setTargetBpm(preset.bpm);
     setSavedIds([]);
+    setPlayingId(null);
   }
 
   function resetState() {
@@ -230,6 +254,7 @@ function Dropkit() {
 
   const mainstreamCount = recommendations.filter((t) => t.tier === 'mainstream').length;
   const undergroundCount = recommendations.length - mainstreamCount;
+  const previewableCount = recommendations.filter((t) => t.soundcloudUrl).length;
   const savedCount = recommendations.filter((t) => savedIds.includes(t.id)).length;
 
   function toggleSaved(id) {
@@ -240,7 +265,7 @@ function Dropkit() {
     const name = playlistName.trim() || `My ${subgenre} Set`;
     const header = `🎧 ${name}  (${subgenre} · key ${CAMELOT_NAMES[targetKey]} / ${targetKey} · ~${targetBpm} BPM)\n`;
     const body = recommendations
-      .map((t, i) => `${String(i + 1).padStart(2, '0')}. ${t.artist} - ${t.title}  →  ${scUrl(t)}`)
+      .map((t, i) => `${String(i + 1).padStart(2, '0')}. ${t.artist} - ${t.title}  →  ${trackLink(t)}`)
       .join('\n');
     const text = `${header}\n${body}\n`;
     const done = () => {
@@ -272,7 +297,7 @@ function Dropkit() {
     )
       return;
     recommendations.forEach((t, i) => {
-      setTimeout(() => window.open(scUrl(t), '_blank', 'noopener'), i * 120);
+      setTimeout(() => window.open(trackLink(t), '_blank', 'noopener'), i * 120);
     });
   }
 
@@ -329,7 +354,7 @@ function Dropkit() {
               </h1>
               <p className="dk-sub">{SUBGENRES[subgenre].blurb}</p>
             </div>
-            <button className="dk-change" onClick={() => setSubgenre(null)}>← Change subgenre</button>
+            <button className="dk-change" onClick={() => { setSubgenre(null); setPlayingId(null); }}>← Change subgenre</button>
           </div>
 
           {/* Tuning controls */}
@@ -434,6 +459,7 @@ function Dropkit() {
             <span className="dk-pill">Key {CAMELOT_NAMES[targetKey]} / {targetKey}</span>
             <span className="dk-pill">~{targetBpm} BPM</span>
             <span className="dk-pill">{mainstreamCount} mainstream · {undergroundCount} underground</span>
+            <span className="dk-pill">▶ {previewableCount} preview inline</span>
           </div>
 
           {/* Track list */}
@@ -441,27 +467,57 @@ function Dropkit() {
             {recommendations.map((t, i) => {
               const badge = matchBadge(t, { key: targetKey, bpm: Number(targetBpm) }, allowHalfDouble, tolerance);
               const isSaved = savedIds.includes(t.id);
+              const canPlay = Boolean(t.soundcloudUrl);
+              const isPlaying = playingId === t.id;
               return (
-                <li key={t.id} className={`dk-track ${isSaved ? 'saved' : ''}`}>
-                  <span className="dk-num">{String(i + 1).padStart(2, '0')}</span>
-                  <div className="dk-track-main">
-                    <div className="dk-track-title">
-                      <a href={scUrl(t)} target="_blank" rel="noopener noreferrer">
-                        {t.artist} — {t.title}
-                      </a>
+                <li key={t.id} className={`dk-track ${isSaved ? 'saved' : ''} ${isPlaying ? 'playing' : ''}`}>
+                  <div className="dk-track-row">
+                    <span className="dk-num">{String(i + 1).padStart(2, '0')}</span>
+                    {canPlay ? (
+                      <button
+                        className={`dk-play ${isPlaying ? 'on' : ''}`}
+                        onClick={() => setPlayingId(isPlaying ? null : t.id)}
+                        title={isPlaying ? 'Hide player' : 'Preview on SoundCloud'}
+                        aria-label={isPlaying ? 'Hide player' : 'Preview track'}
+                      >
+                        {isPlaying ? '✕' : '▶'}
+                      </button>
+                    ) : (
+                      <span className="dk-play disabled" title="No verified SoundCloud match — use the search link">🔍</span>
+                    )}
+                    <div className="dk-track-main">
+                      <div className="dk-track-title">
+                        <a href={trackLink(t)} target="_blank" rel="noopener noreferrer">
+                          {t.artist} — {t.title}
+                        </a>
+                        {!canPlay && <span className="dk-search-note">search</span>}
+                      </div>
+                      <div className="dk-track-meta">
+                        <span className={`dk-badge ${badge.cls}`}>{badge.label}</span>
+                        <span className="dk-meta-chip">{t.camelot} · {t.key}</span>
+                        <span className="dk-meta-chip">{t.bpm} BPM</span>
+                        <span className={`dk-meta-chip tier-${t.tier}`}>{t.tier}</span>
+                        <span className="dk-vibe">{t.vibe}</span>
+                      </div>
                     </div>
-                    <div className="dk-track-meta">
-                      <span className={`dk-badge ${badge.cls}`}>{badge.label}</span>
-                      <span className="dk-meta-chip">{t.camelot} · {t.key}</span>
-                      <span className="dk-meta-chip">{t.bpm} BPM</span>
-                      <span className={`dk-meta-chip tier-${t.tier}`}>{t.tier}</span>
-                      <span className="dk-vibe">{t.vibe}</span>
-                    </div>
+                    <label className="dk-add" title="Mark as added to your playlist">
+                      <input type="checkbox" checked={isSaved} onChange={() => toggleSaved(t.id)} />
+                      <span>{isSaved ? 'Added' : 'Add'}</span>
+                    </label>
                   </div>
-                  <label className="dk-add" title="Mark as added to your playlist">
-                    <input type="checkbox" checked={isSaved} onChange={() => toggleSaved(t.id)} />
-                    <span>{isSaved ? 'Added' : 'Add'}</span>
-                  </label>
+                  {isPlaying && (
+                    <div className="dk-player">
+                      <iframe
+                        title={`${t.artist} - ${t.title}`}
+                        width="100%"
+                        height="120"
+                        scrolling="no"
+                        frameBorder="no"
+                        allow="autoplay"
+                        src={embedUrl(t.soundcloudUrl)}
+                      />
+                    </div>
+                  )}
                 </li>
               );
             })}
@@ -500,6 +556,7 @@ function Dropkit() {
             </div>
 
             <ol className="dk-steps">
+              <li>Hit <strong>▶</strong> on any track to preview it inline before you commit to the set.</li>
               <li>Name your playlist above and hit <strong>Copy tracklist</strong>.</li>
               <li>
                 Open each track (links above), tap <strong>More → Add to playlist → Create new
@@ -508,9 +565,10 @@ function Dropkit() {
               <li>Add the rest to that same playlist and check them off here as you go.</li>
             </ol>
             <p className="dk-disclaimer">
-              SoundCloud doesn&apos;t let third-party sites create playlists for you, so DROPKIT
-              prepares everything and walks you through the one-time save. Your progress is saved
-              automatically.
+              Inline previews stream from SoundCloud&apos;s public player. A few deeper underground cuts
+              have no verified match yet — those show a 🔍 search link instead. SoundCloud doesn&apos;t
+              let third-party sites create playlists for you, so DROPKIT preps everything and walks you
+              through the one-time save. Your progress is saved automatically.
             </p>
           </div>
         </section>
