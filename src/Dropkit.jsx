@@ -13,7 +13,6 @@ const STORAGE = {
   neighbors: 'dropkit.includeNeighbors',
   tier: 'dropkit.tierPreference',
   playlist: 'dropkit.playlistName',
-  saved: 'dropkit.savedIds',
 };
 const ALL_KEYS = Object.values(STORAGE);
 
@@ -147,9 +146,8 @@ function Dropkit() {
   const [tolerance, setTolerance] = useState(() => load(STORAGE.tolerance, 3));
   const [allowHalfDouble, setAllowHalfDouble] = useState(() => load(STORAGE.halfDouble, true));
   const [includeNeighbors, setIncludeNeighbors] = useState(() => load(STORAGE.neighbors, true));
-  const [tierPref, setTierPref] = useState(() => load(STORAGE.tier, 'balanced'));
+  const [tierPref, setTierPref] = useState(() => load(STORAGE.tier, 'all'));
   const [playlistName, setPlaylistName] = useState(() => load(STORAGE.playlist, ''));
-  const [savedIds, setSavedIds] = useState(() => load(STORAGE.saved, []));
 
   const [copied, setCopied] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -192,19 +190,17 @@ function Dropkit() {
   useEffect(() => localStorage.setItem(STORAGE.neighbors, JSON.stringify(includeNeighbors)), [includeNeighbors]);
   useEffect(() => localStorage.setItem(STORAGE.tier, JSON.stringify(tierPref)), [tierPref]);
   useEffect(() => localStorage.setItem(STORAGE.playlist, JSON.stringify(playlistName)), [playlistName]);
-  useEffect(() => localStorage.setItem(STORAGE.saved, JSON.stringify(savedIds)), [savedIds]);
 
   function chooseSubgenre(name) {
     const preset = SUBGENRES[name];
     setSubgenre(name);
     setTargetKey(preset.key);
     setTargetBpm(preset.bpm);
-    setSavedIds([]);
     setPlayingId(null);
   }
 
   function resetState() {
-    if (!window.confirm('Reset DROPKIT? This clears your subgenre, tuning, playlist name and saved progress.')) return;
+    if (!window.confirm('Reset DropKit? This clears your subgenre, tuning and playlist name.')) return;
     ALL_KEYS.forEach((k) => localStorage.removeItem(k));
     setSubgenre(null);
     setTargetKey('6A');
@@ -212,54 +208,34 @@ function Dropkit() {
     setTolerance(3);
     setAllowHalfDouble(true);
     setIncludeNeighbors(true);
-    setTierPref('balanced');
+    setTierPref('all');
     setPlaylistName('');
-    setSavedIds([]);
+    setPlayingId(null);
   }
 
   /* Rank the subgenre pool and take 20 floor-fillers */
   const recommendations = useMemo(() => {
     if (!subgenre) return [];
     const target = { key: targetKey, bpm: Number(targetBpm) };
-    const pool = tracks.filter((t) => t.subgenre === subgenre);
+    let pool = tracks.filter((t) => t.subgenre === subgenre);
+    if (tierPref === 'mainstream') pool = pool.filter((t) => t.tier === 'mainstream');
+    else if (tierPref === 'underground') pool = pool.filter((t) => t.tier === 'underground');
 
-    const scored = pool
+    return pool
       .map((t) => {
         const ks = keyScore(t.camelot, target.key);
         const { dist } = bpmMatch(t.bpm, target.bpm, allowHalfDouble);
         let score = ks * 12 + dist;
         if (!includeNeighbors && ks > 0) score += 30; // keep strictly in-key on top
-        if (tierPref === 'mainstream' && t.tier === 'underground') score += 5;
-        if (tierPref === 'underground' && t.tier === 'mainstream') score += 5;
         return { ...t, score };
       })
-      .sort((a, b) => a.score - b.score);
-
-    if (tierPref === 'balanced') {
-      const main = scored.filter((t) => t.tier === 'mainstream').slice(0, 10);
-      const und = scored.filter((t) => t.tier === 'underground').slice(0, 10);
-      const merged = [...main, ...und];
-      const used = new Set(merged.map((t) => t.id));
-      for (const t of scored) {
-        if (merged.length >= 20) break;
-        if (!used.has(t.id)) {
-          merged.push(t);
-          used.add(t.id);
-        }
-      }
-      return merged.sort((a, b) => a.score - b.score).slice(0, 20);
-    }
-    return scored.slice(0, 20);
+      .sort((a, b) => a.score - b.score)
+      .slice(0, 20);
   }, [tracks, subgenre, targetKey, targetBpm, allowHalfDouble, includeNeighbors, tierPref]);
 
   const mainstreamCount = recommendations.filter((t) => t.tier === 'mainstream').length;
   const undergroundCount = recommendations.length - mainstreamCount;
   const previewableCount = recommendations.filter((t) => t.soundcloudUrl).length;
-  const savedCount = recommendations.filter((t) => savedIds.includes(t.id)).length;
-
-  function toggleSaved(id) {
-    setSavedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  }
 
   function copyTracklist() {
     const name = playlistName.trim() || `My ${subgenre} Set`;
@@ -309,7 +285,7 @@ function Dropkit() {
       <header className="dk-top">
         <Link to="/" className="dk-home-link">← Home</Link>
         <div className="dk-brand">
-          <span className="dk-logo">DROPKIT</span>
+          <span className="dk-logo">DropKit</span>
           <span className="dk-tag">forge a harmonically-locked set that detonates the floor</span>
         </div>
         <button className="dk-reset" onClick={resetState}>Reset</button>
@@ -413,11 +389,11 @@ function Dropkit() {
               </label>
             </div>
 
-            <div className="dk-control">
+            <div className="dk-control dk-control-wide">
               <label>Artist mix</label>
               <div className="dk-seg">
                 {[
-                  ['balanced', 'Balanced'],
+                  ['all', 'All'],
                   ['mainstream', 'Mainstream'],
                   ['underground', 'Underground'],
                 ].map(([val, lbl]) => (
@@ -466,11 +442,10 @@ function Dropkit() {
           <ol className="dk-list">
             {recommendations.map((t, i) => {
               const badge = matchBadge(t, { key: targetKey, bpm: Number(targetBpm) }, allowHalfDouble, tolerance);
-              const isSaved = savedIds.includes(t.id);
               const canPlay = Boolean(t.soundcloudUrl);
               const isPlaying = playingId === t.id;
               return (
-                <li key={t.id} className={`dk-track ${isSaved ? 'saved' : ''} ${isPlaying ? 'playing' : ''}`}>
+                <li key={t.id} className={`dk-track ${isPlaying ? 'playing' : ''}`}>
                   <div className="dk-track-row">
                     <span className="dk-num">{String(i + 1).padStart(2, '0')}</span>
                     {canPlay ? (
@@ -500,10 +475,6 @@ function Dropkit() {
                         <span className="dk-vibe">{t.vibe}</span>
                       </div>
                     </div>
-                    <label className="dk-add" title="Mark as added to your playlist">
-                      <input type="checkbox" checked={isSaved} onChange={() => toggleSaved(t.id)} />
-                      <span>{isSaved ? 'Added' : 'Add'}</span>
-                    </label>
                   </div>
                   {isPlaying && (
                     <div className="dk-player">
@@ -548,27 +519,10 @@ function Dropkit() {
               <button className="dk-btn" onClick={openAll}>Open all 20 tracks ↗</button>
             </div>
 
-            <div className="dk-progress">
-              <div className="dk-progress-bar">
-                <span style={{ width: `${(savedCount / 20) * 100}%` }} />
-              </div>
-              <span className="dk-progress-label">{savedCount} / 20 added</span>
-            </div>
-
-            <ol className="dk-steps">
-              <li>Hit <strong>▶</strong> on any track to preview it inline before you commit to the set.</li>
-              <li>Name your playlist above and hit <strong>Copy tracklist</strong>.</li>
-              <li>
-                Open each track (links above), tap <strong>More → Add to playlist → Create new
-                playlist</strong>, and use your playlist name the first time.
-              </li>
-              <li>Add the rest to that same playlist and check them off here as you go.</li>
-            </ol>
             <p className="dk-disclaimer">
-              Inline previews stream from SoundCloud&apos;s public player. A few deeper underground cuts
-              have no verified match yet — those show a 🔍 search link instead. SoundCloud doesn&apos;t
-              let third-party sites create playlists for you, so DROPKIT preps everything and walks you
-              through the one-time save. Your progress is saved automatically.
+              Inline previews stream from SoundCloud&apos;s public player. SoundCloud doesn&apos;t let
+              third-party sites create playlists for you, so DropKit preps everything — name your
+              playlist, copy the tracklist, then add the tracks to a new playlist on SoundCloud.
             </p>
           </div>
         </section>

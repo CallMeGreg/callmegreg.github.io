@@ -39,8 +39,8 @@ function Home() {
           <span>Wubdle</span>
         </Link>
         <Link to="/dropkit" className="button">
-          <img src="/images/dropkit.svg" alt="DROPKIT" />
-          <span>DROPKIT</span>
+          <img src="/images/dropkit.svg" alt="DropKit" />
+          <span>DropKit</span>
         </Link>
       </div>
     </div>

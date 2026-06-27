@@ -245,6 +245,9 @@
   width: 16px;
   height: 16px;
 }
+.dk-control-wide {
+  grid-column: 1 / -1;
+}
 .dk-seg {
   display: flex;
   border: 1px solid var(--panel-border);
@@ -252,13 +255,18 @@
   overflow: hidden;
 }
 .dk-seg button {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
   background: #160a26;
   color: var(--muted);
   border: none;
-  padding: 9px 6px;
-  font-size: 13px;
+  padding: 10px 8px;
+  font-size: 14px;
+  white-space: nowrap;
   cursor: pointer;
+}
+.dk-seg button + button {
+  border-left: 1px solid var(--panel-border);
 }
 .dk-seg button.active {
   background: var(--accent);
@@ -333,10 +341,6 @@
   display: flex;
   align-items: center;
   gap: 14px;
-}
-.dk-track.saved {
-  border-color: var(--accent);
-  background: rgba(166, 75, 255, 0.08);
 }
 .dk-track.playing {
   border-color: var(--accent);
@@ -461,21 +465,6 @@
   color: var(--muted);
   font-style: italic;
 }
-.dk-add {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  font-size: 11px;
-  color: var(--muted);
-  cursor: pointer;
-  min-width: 44px;
-}
-.dk-add input {
-  accent-color: var(--accent);
-  width: 18px;
-  height: 18px;
-}
 
 /* ── Save panel ───────────────────────────────────────────── */
 .dk-save {
@@ -528,42 +517,6 @@
   background: var(--accent);
   color: #0b0118;
   border-color: var(--accent);
-}
-.dk-progress {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 18px 0;
-}
-.dk-progress-bar {
-  flex: 1;
-  height: 10px;
-  background: #160a26;
-  border-radius: 999px;
-  overflow: hidden;
-  border: 1px solid var(--panel-border);
-}
-.dk-progress-bar span {
-  display: block;
-  height: 100%;
-  background: linear-gradient(90deg, #00f6ff, var(--accent), #ff2bd6);
-  transition: width 0.25s ease;
-}
-.dk-progress-label {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--muted);
-  white-space: nowrap;
-}
-.dk-steps {
-  margin: 0 0 12px;
-  padding-left: 20px;
-  color: var(--text);
-  font-size: 14px;
-  line-height: 1.6;
-}
-.dk-steps li {
-  margin-bottom: 4px;
 }
 
 @media (max-width: 560px) {
