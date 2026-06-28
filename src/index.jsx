@@ -7,6 +7,7 @@ import CoinChaser from './CoinChaser';
 import HouseAlwaysWins from './HouseAlwaysWins';
 import Jeopardy from './Jeopardy';
 import Wubdle from './Wubdle';
+import Dropkit from './Dropkit';
 import './index.css';
 
 function Home() {
@@ -37,6 +38,10 @@ function Home() {
           <img src="/images/wubdle.svg" alt="Wubdle" />
           <span>Wubdle</span>
         </Link>
+        <Link to="/dropkit" className="button">
+          <img src="/images/dropkit.svg" alt="DropKit" />
+          <span>DropKit</span>
+        </Link>
       </div>
     </div>
   );
@@ -54,6 +59,7 @@ root.render(
         <Route path="/house-always-wins" element={<HouseAlwaysWins />} />
         <Route path="/jeopardy" element={<Jeopardy />} />
         <Route path="/wubdle" element={<Wubdle />} />
+        <Route path="/dropkit" element={<Dropkit />} />
       </Routes>
     </Router>
   </React.StrictMode>

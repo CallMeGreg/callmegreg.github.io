@@ -1,0 +1,524 @@
+:root {
+  --accent: #a64bff;
+}
+
+.dk {
+  --bg: #0b0118;
+  --panel: rgba(255, 255, 255, 0.04);
+  --panel-border: rgba(255, 255, 255, 0.12);
+  --text: #f2eaff;
+  --muted: #a99fc4;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0 0 60px;
+  color: var(--text);
+  background:
+    radial-gradient(1200px 600px at 15% -10%, rgba(166, 75, 255, 0.18), transparent 60%),
+    radial-gradient(1000px 500px at 100% 0%, rgba(0, 246, 255, 0.12), transparent 55%),
+    #0b0118;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* ── Top bar ──────────────────────────────────────────────── */
+.dk-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--panel-border);
+}
+.dk-home-link,
+.dk-reset {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 14px;
+  background: none;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 7px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.dk-home-link:hover,
+.dk-reset:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+.dk-brand {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.dk-logo {
+  font-weight: 900;
+  letter-spacing: 4px;
+  font-size: 24px;
+  background: linear-gradient(90deg, #00f6ff, #a64bff, #ff2bd6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.dk-loading {
+  text-align: center;
+  color: var(--muted);
+  margin-top: 80px;
+}
+
+/* ── Headings ─────────────────────────────────────────────── */
+.dk-h1 {
+  margin: 0 0 6px;
+  font-size: 30px;
+  font-weight: 800;
+}
+.dk-sub {
+  margin: 0;
+  color: var(--muted);
+  max-width: 640px;
+  line-height: 1.5;
+}
+
+/* ── Subgenre picker ──────────────────────────────────────── */
+.dk-pick {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 40px 24px;
+  text-align: center;
+}
+.dk-pick .dk-sub {
+  margin: 0 auto 28px;
+}
+.dk-genre-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 18px;
+}
+.dk-genre-card {
+  --accent: #a64bff;
+  text-align: left;
+  cursor: pointer;
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  padding: 22px;
+  background: var(--panel);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.dk-genre-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+  box-shadow: 0 12px 30px -12px var(--accent);
+}
+.dk-genre-emoji {
+  font-size: 34px;
+}
+.dk-genre-name {
+  font-size: 20px;
+  font-weight: 800;
+}
+.dk-genre-meta {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 1px;
+}
+.dk-genre-blurb {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+/* ── Build screen ─────────────────────────────────────────── */
+.dk-build {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 30px 24px;
+}
+.dk-build-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.dk-change {
+  background: none;
+  border: 1px solid var(--panel-border);
+  color: var(--muted);
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.dk-change:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+/* ── Controls ─────────────────────────────────────────────── */
+.dk-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  padding: 18px;
+}
+.dk-control {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dk-control > label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  font-weight: 700;
+}
+.dk-control select,
+.dk-control input[type='number'] {
+  background: #160a26;
+  color: var(--text);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 9px 10px;
+  font-size: 15px;
+}
+.dk-control select:focus,
+.dk-control input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.dk-stepper {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+.dk-stepper input {
+  flex: 1;
+  text-align: center;
+  width: 100%;
+}
+.dk-stepper button {
+  width: 38px;
+  border: 1px solid var(--panel-border);
+  background: #160a26;
+  color: var(--text);
+  border-radius: 8px;
+  font-size: 18px;
+  cursor: pointer;
+}
+.dk-stepper button:hover {
+  border-color: var(--accent);
+}
+.dk-control input[type='range'] {
+  accent-color: var(--accent);
+  width: 100%;
+}
+.dk-toggles {
+  justify-content: center;
+}
+.dk-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text);
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+.dk-check input {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
+}
+.dk-control-wide {
+  grid-column: 1 / -1;
+}
+.dk-seg {
+  display: flex;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.dk-seg button {
+  flex: 1 1 0;
+  min-width: 0;
+  background: #160a26;
+  color: var(--muted);
+  border: none;
+  padding: 10px 8px;
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.dk-seg button + button {
+  border-left: 1px solid var(--panel-border);
+}
+.dk-seg button.active {
+  background: var(--accent);
+  color: #0b0118;
+  font-weight: 700;
+}
+
+/* ── Help ─────────────────────────────────────────────────── */
+.dk-help-toggle {
+  margin: 18px 0 0;
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+}
+.dk-help {
+  margin-top: 10px;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text);
+}
+.dk-help p {
+  margin: 0 0 10px;
+}
+.dk-disclaimer {
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+  margin: 0;
+}
+
+/* ── Summary pills ────────────────────────────────────────── */
+.dk-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 22px 0 12px;
+}
+.dk-pill {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ── Track list ───────────────────────────────────────────── */
+.dk-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dk-track {
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.dk-track-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.dk-track.playing {
+  border-color: var(--accent);
+}
+.dk-play {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--accent);
+  background: rgba(166, 75, 255, 0.12);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.dk-play:hover {
+  background: var(--accent);
+  color: #0b0118;
+}
+.dk-play.on {
+  background: var(--accent);
+  color: #0b0118;
+}
+.dk-play.disabled {
+  border-color: var(--panel-border);
+  background: transparent;
+  color: var(--muted);
+  cursor: default;
+  font-size: 14px;
+}
+.dk-search-note {
+  font-size: 10px;
+  color: var(--muted);
+  border: 1px solid var(--panel-border);
+  border-radius: 5px;
+  padding: 1px 5px;
+  margin-left: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  vertical-align: middle;
+}
+.dk-player {
+  margin-top: 12px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+}
+.dk-player iframe {
+  display: block;
+}
+.dk-num {
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--accent);
+  min-width: 26px;
+  text-align: center;
+}
+.dk-track-main {
+  flex: 1;
+  min-width: 0;
+}
+.dk-track-title a {
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 15px;
+}
+.dk-track-title a:hover {
+  text-decoration: underline;
+  color: var(--accent);
+}
+.dk-track-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+.dk-badge {
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 6px;
+  padding: 3px 8px;
+}
+.dk-badge.perfect {
+  background: #00f6ff;
+  color: #04222a;
+}
+.dk-badge.good {
+  background: #6bff9e;
+  color: #053018;
+}
+.dk-badge.ok {
+  background: #ffd166;
+  color: #3a2700;
+}
+.dk-badge.stretch {
+  background: #ff6b9d;
+  color: #3a0017;
+}
+.dk-meta-chip {
+  font-size: 11px;
+  color: var(--muted);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 3px 7px;
+}
+.dk-meta-chip.tier-mainstream {
+  color: #00f6ff;
+  border-color: rgba(0, 246, 255, 0.4);
+}
+.dk-meta-chip.tier-underground {
+  color: #ff2bd6;
+  border-color: rgba(255, 43, 214, 0.4);
+}
+.dk-vibe {
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* ── Save panel ───────────────────────────────────────────── */
+.dk-save {
+  margin-top: 28px;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  padding: 22px;
+}
+.dk-save h2 {
+  margin: 0 0 16px;
+  font-size: 20px;
+}
+.dk-save-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.dk-playlist-input {
+  flex: 1;
+  min-width: 200px;
+  background: #160a26;
+  color: var(--text);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 11px 12px;
+  font-size: 15px;
+}
+.dk-playlist-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.dk-btn {
+  border: 1px solid var(--panel-border);
+  background: #160a26;
+  color: var(--text);
+  border-radius: 8px;
+  padding: 11px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.dk-btn:hover {
+  border-color: var(--accent);
+}
+.dk-btn.primary {
+  background: var(--accent);
+  color: #0b0118;
+  border-color: var(--accent);
+}
+
+@media (max-width: 560px) {
+  .dk-track-row {
+    flex-wrap: wrap;
+  }
+  .dk-build-head {
+    flex-direction: column;
+  }
+}
