@@ -21,8 +21,8 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CSV_PATH = path.join(__dirname, '..', 'public', 'dropkit-tracks.csv');
-const CAP_PER_GENRE = 100;
-const MAX_PER_ARTIST = 6;
+const CAP_PER_GENRE = 110;
+const MAX_PER_ARTIST = 5;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -36,8 +36,8 @@ const GENRES = {
       underground: ['jump-up filth', 'dark roller', 'neuro destroyer', 'rave riot', 'technical roller'],
     },
     artists: {
-      mainstream: ['Sub Focus', 'Wilkinson', 'Pendulum', 'Chase & Status', 'Dimension', 'Netsky', 'High Contrast', 'Andy C', 'Camo & Krooked', 'Hybrid Minds', 'Friction', 'Koven', 'London Elektricity', 'Sigma', 'Metrik', 'Fred V', 'Etherwood', 'S.P.Y', 'Logistics', 'Technimatic'],
-      underground: ['Bou', 'Kanine', 'Turno', 'Benny L', 'Serum', 'Macky Gee', 'Hedex', 'A.M.C', 'Document One', 'Voltage', 'Mozey', 'Noisia', 'Mefjus', 'Halogenix', 'Tantrum Desire', 'DLR', 'Break', 'Calibre', 'Alix Perez', 'Ivy Lab', 'Unglued', 'Sustance', 'Phibes', 'Molecular'],
+      mainstream: ['Sub Focus', 'Wilkinson', 'Pendulum', 'Chase & Status', 'Dimension', 'Netsky', 'High Contrast', 'Andy C', 'Camo & Krooked', 'Hybrid Minds', 'Friction', 'Koven', 'London Elektricity', 'Sigma', 'Metrik', 'Fred V', 'Etherwood', 'S.P.Y', 'Logistics', 'Technimatic', 'K Motionz', 'Delta Heavy', 'Culture Shock', 'Grafix', 'Andromedik', '1991', 'Subsonic', 'Pola & Bryson'],
+      underground: ['Bou', 'Kanine', 'Turno', 'Benny L', 'Serum', 'Macky Gee', 'Hedex', 'A.M.C', 'Document One', 'Voltage', 'Mozey', 'Noisia', 'Mefjus', 'Halogenix', 'Tantrum Desire', 'DLR', 'Break', 'Calibre', 'Alix Perez', 'Ivy Lab', 'Unglued', 'Sustance', 'Phibes', 'Molecular', 'Basstripper', 'SLESS', 'SKIYE', 'ROVA', 'Amoss', 'Arcando', 'Kelvin 373', 'Twintone', 'Waeys'],
     },
   },
   Dubstep: {
@@ -48,8 +48,8 @@ const GENRES = {
       underground: ['gut-punch bass', 'experimental heavy', 'melodic dubstep', 'grimy weight', 'sound-system pressure'],
     },
     artists: {
-      mainstream: ['Skrillex', 'Excision', 'Zomboy', 'Flux Pavilion', 'Doctor P', 'Datsik', 'Virtual Riot', 'Subtronics', 'Svdden Death', 'Marauda', 'Ganja White Night', 'Modestep', 'Caspa', 'Rusko', 'Borgore', 'Funtcase', 'MUST DIE!', 'Getter', 'Habstrakt', 'Spag Heddy'],
-      underground: ['Eptic', 'Phiso', 'Calcium', 'Boogie T', 'Kompany', 'Aweminus', 'PhaseOne', 'Oolacile', 'Smook', 'Wooli', 'Ace Aura', 'SKisM', 'Infekt', 'Truth', 'Mize', 'Samplifire', 'Dirt Monkey', 'Codd Dubz', 'Automhate', 'PEEKABOO'],
+      mainstream: ['Skrillex', 'Excision', 'Zomboy', 'Flux Pavilion', 'Doctor P', 'Datsik', 'Virtual Riot', 'Subtronics', 'Svdden Death', 'Marauda', 'Ganja White Night', 'Modestep', 'Caspa', 'Rusko', 'Borgore', 'Funtcase', 'MUST DIE!', 'Getter', 'Habstrakt', 'Spag Heddy', 'Sullivan King', 'Kai Wachi', 'Ray Volpe', 'Hamdi', 'LSDREAM', 'LYNY'],
+      underground: ['Eptic', 'Phiso', 'Calcium', 'Boogie T', 'Kompany', 'Aweminus', 'PhaseOne', 'Oolacile', 'Smook', 'Wooli', 'Ace Aura', 'SKisM', 'Infekt', 'Truth', 'Mize', 'Samplifire', 'Dirt Monkey', 'Codd Dubz', 'Automhate', 'PEEKABOO', 'Ecraze', 'PROSECUTE', 'Midnight Tyrannosaurus', 'MADCORE', 'GOAT DUBZ', 'Monxx', 'Syzy', 'Jkyl & Hyde', 'Stoned LeveL', 'Nosphere', 'Cromatik', 'DirtySnatcha', 'Versa', 'MVRDA', 'Phonon'],
     },
   },
   House: {
@@ -60,8 +60,8 @@ const GENRES = {
       underground: ['raw tech house', 'hypnotic groove', 'rolling tech', 'g-house swagger', 'deep mover'],
     },
     artists: {
-      mainstream: ['Fisher', 'John Summit', 'Chris Lake', 'CamelPhat', 'Dom Dolla', 'Gorgon City', 'Calvin Harris', 'MK', 'Chris Lorenzo', 'Disclosure', 'Vintage Culture', 'ACRAZE', 'Green Velvet', 'Fatboy Slim', 'Hot Since 82', 'Solardo', 'Patrick Topping', 'Black Coffee'],
-      underground: ['Cloonee', 'Matroda', 'Westend', 'Wax Motif', 'Biscits', 'Eli Brown', 'Notion', 'Mau P', 'Hugel', 'Kry Wolf', 'Dennis Cruz', 'Marco Carola', 'Mark Knight', 'Michael Bibi', 'Sidney Charles', 'Latmun', 'Josh Baker', 'wAFF'],
+      mainstream: ['Fisher', 'John Summit', 'Chris Lake', 'CamelPhat', 'Dom Dolla', 'Gorgon City', 'Calvin Harris', 'MK', 'Chris Lorenzo', 'Disclosure', 'Vintage Culture', 'ACRAZE', 'Green Velvet', 'Fatboy Slim', 'Hot Since 82', 'Solardo', 'Patrick Topping', 'Black Coffee', 'PAWSA', 'James Hype', 'Mochakk', 'Sonny Fodera', 'Peggy Gou', 'D.O.D', 'Prospa', 'Kolter', 'Shermanology'],
+      underground: ['Cloonee', 'Matroda', 'Westend', 'Wax Motif', 'Biscits', 'Eli Brown', 'Notion', 'Mau P', 'Hugel', 'Kry Wolf', 'Dennis Cruz', 'Marco Carola', 'Mark Knight', 'Michael Bibi', 'Sidney Charles', 'Latmun', 'Josh Baker', 'wAFF', 'CASSIMM', 'James Hurr', 'Nolek', 'LEFTI', 'Qubiko', 'Rick Silva', 'DJ PP', 'Detlef', 'Crusy', 'Dario Nunez', 'Angelo Ferreri'],
     },
   },
   Riddim: {
@@ -72,8 +72,8 @@ const GENRES = {
       underground: ['filthy riddim', 'screwed bass', 'hypnotic riddim', 'sound-system weight', 'headbang fuel'],
     },
     artists: {
-      mainstream: ['Subtronics', 'Infekt', 'Phiso', 'Oolacile', 'Bommer', 'Marauda', 'Gentlemens Club', 'Megalodon', 'Hairitage', 'Codd Dubz', 'Eptic', 'Virtual Riot', 'Svdden Death'],
-      underground: ['Crowell', 'Hukae', 'Subfiltronik', 'Distinct Motive', 'Automhate', 'Akeos', 'Bukez Finezt', 'Ternion Sound', 'Yakz', 'Antiserum', 'Khiva', 'Squnto', 'Badklaat', 'Saka', 'Dubloadz', 'Tirossi', 'Mvrda', 'Frequent', 'Mastadon', 'Samplifire'],
+      mainstream: ['Subtronics', 'Infekt', 'Phiso', 'Oolacile', 'Bommer', 'Marauda', 'Gentlemens Club', 'Megalodon', 'Hairitage', 'Codd Dubz', 'Eptic', 'Virtual Riot', 'Svdden Death', 'Sullivan King', 'Kai Wachi', 'Ray Volpe', 'Hol!', 'WODD', 'Chibs', 'IVORY', 'Hamdi', 'Aweminus', 'MAD DUBZ'],
+      underground: ['Crowell', 'Hukae', 'Subfiltronik', 'Distinct Motive', 'Automhate', 'Akeos', 'Bukez Finezt', 'Ternion Sound', 'Yakz', 'Antiserum', 'Khiva', 'Squnto', 'Badklaat', 'Saka', 'Dubloadz', 'Tirossi', 'Mvrda', 'Frequent', 'Mastadon', 'Samplifire', 'Ecraze', 'PROSECUTE', 'MADCORE', 'SHRQ', 'Phydra', 'GOAT DUBZ', 'Emorfik', 'DISKIRZ', 'Soul Valient', 'Monxx', 'Cromatik', 'Nosphere', 'Stoned LeveL', 'Jkyl & Hyde', 'DirtySnatcha', 'Versa', 'Syzy', 'Leotrix', 'TYNAN', 'Ponicz'],
     },
   },
 };
@@ -170,6 +170,8 @@ async function resolveArtist(name, cid) {
 }
 
 const TITLE_BLOCK = ['podcast', 'mixtape', 'mix tape', 'liveset', 'live set', 'dj set', 'djset', 'episode', 'guest mix', 'radio show', 'radioshow', 'sessions', 'mix series', 'full mix', 'continuous', 'b2b', 'announcement', 'tour dates', 'merch', 'interview', 'q&a', 'tutorial', 'sample pack', 'samplepack', 'preset', 'giveaway', 'minimix', 'yearmix', 'year mix', 'essential mix', 'tracklist'];
+// Word-boundary teaser tags (avoids false hits like "eclipse" for "clip").
+const TEASER = /\b(clip|snippet|teaser)\b/i;
 
 function isRealTrack(t) {
   if (!t || t.kind !== 'track') return false;
@@ -179,12 +181,61 @@ function isRealTrack(t) {
   if (mins < 1.3 || mins > 9) return false; // weed out mixes & clips
   const title = (t.title || '').toLowerCase();
   if (TITLE_BLOCK.some((w) => title.includes(w))) return false;
+  if (TEASER.test(title)) return false; // skip preview/teaser uploads
   return true;
+}
+
+// Tidy raw SoundCloud titles for display: drop a redundant leading "Artist - "
+// prefix and trailing promo tags, while preserving remix/VIP/feat info.
+function cleanTitle(rawTitle, artist) {
+  let s = String(rawTitle || '').trim();
+  const esc = artist.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  s = s.replace(new RegExp(`^\\s*${esc}\\s*[-–—:]\\s*`, 'i'), '');
+  const PROMO = '(?:free\\s*download|free\\s*d\\/?l|out\\s*now(?:\\s+on[^)\\]}*]*)?|buy\\s*now|link\\s*in\\s*(?:description|bio)|premiere|forthcoming|download)';
+  // Strip trailing promo, optionally wrapped in (), [], {}, ** ** or led by - | *.
+  const trailing = new RegExp(`\\s*[-–—|]*\\s*[([{*]*\\s*${PROMO}\\s*[!.?*)\\]}\\s]*$`, 'i');
+  let prev;
+  do {
+    prev = s;
+    s = s.replace(trailing, '').trim();
+  } while (s !== prev && s.length);
+  s = s.replace(/(\s+#[\w]+)+\s*$/g, '').trim(); // trailing hashtags
+  s = s.replace(/\s*\|\s*[^|]+$/, '').trim(); // trailing "| label/series"
+  s = s.replace(/[\s\-–—|*]+$/, '').trim(); // dangling separators
+  s = s.replace(/\s{2,}/g, ' ').trim();
+  return s || String(rawTitle || '').trim();
 }
 
 async function getArtistTracks(user, cid) {
   const data = await api(`/users/${user.id}/tracks?limit=40`, cid);
   return (data.collection || []).filter(isRealTrack);
+}
+
+/* Favor recent releases so the catalog reflects what's current. Mainstream
+ * keeps popularity weight (sqrt plays) but boosts recency; underground leans
+ * harder on recency to surface "recently exploding" tunes over old catalog. */
+function ageMonths(t) {
+  const d = new Date(t.display_date || t.created_at || 0).getTime();
+  if (!d || Number.isNaN(d)) return 36;
+  return Math.max(0, (Date.now() - d) / (1000 * 60 * 60 * 24 * 30.4));
+}
+function recencyWeight(months, steep) {
+  if (steep) {
+    if (months <= 12) return 1;
+    if (months <= 24) return 0.6;
+    if (months <= 48) return 0.3;
+    return 0.15;
+  }
+  if (months <= 12) return 1;
+  if (months <= 24) return 0.78;
+  if (months <= 48) return 0.5;
+  if (months <= 84) return 0.3;
+  return 0.18;
+}
+function freshnessScore(t, tier) {
+  const plays = t.playback_count || 0;
+  const base = tier === 'underground' ? Math.log10(plays + 10) : Math.sqrt(plays);
+  return base * recencyWeight(ageMonths(t), tier === 'underground');
 }
 
 async function main() {
@@ -237,7 +288,7 @@ async function main() {
         console.warn(`  ! tracks ${name}: ${e.message}`);
       }
       await sleep(150);
-      tracks.sort((a, b) => (b.playback_count || 0) - (a.playback_count || 0));
+      tracks.sort((a, b) => freshnessScore(b, tier) - freshnessScore(a, tier));
       tracks = tracks.slice(0, MAX_PER_ARTIST);
       if (tracks.length) {
         pools[tier].push({ name, tracks, ptr: 0 });
@@ -247,23 +298,29 @@ async function main() {
       }
     }
 
-    // 2) Round-robin across artists, alternating tiers, for max diversity + ~50/50 mix.
+    // 2) True round-robin across artists, alternating tiers, so every artist
+    //    (including the freshly-added current/exploding names) contributes and
+    //    no single artist dominates. ~50/50 mainstream/underground.
     const picked = [];
     const seenUrl = new Set();
     let keyIdx = 0;
     const counts = { mainstream: 0, underground: 0 };
     const order = ['mainstream', 'underground'];
     let turn = 0;
+    pools.mainstream.rr = 0;
+    pools.underground.rr = 0;
 
     const takeFrom = (pool) => {
-      // Rotate through this tier's artists, taking one unused track each.
-      for (let i = 0; i < pool.length; i++) {
-        const art = pool[i];
+      // Start after the last artist we drew from, so picks rotate evenly.
+      for (let n = 0; n < pool.length; n++) {
+        const idx = (pool.rr + n) % pool.length;
+        const art = pool[idx];
         while (art.ptr < art.tracks.length) {
           const t = art.tracks[art.ptr++];
           const url = (t.permalink_url || '').split('?')[0];
           if (!url || seenUrl.has(url)) continue;
           seenUrl.add(url);
+          pool.rr = (idx + 1) % pool.length;
           return { art, t, url };
         }
       }
@@ -292,7 +349,7 @@ async function main() {
       picked.push({
         subgenre: genre,
         artist: art.name,
-        title: t.title,
+        title: cleanTitle(t.title, art.name),
         camelot,
         key: KEY_NAMES[camelot] || '',
         bpm,
