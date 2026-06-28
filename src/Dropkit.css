@@ -60,11 +60,6 @@
   background-clip: text;
   color: transparent;
 }
-.dk-tag {
-  font-size: 11px;
-  color: var(--muted);
-  letter-spacing: 0.5px;
-}
 
 .dk-loading {
   text-align: center;

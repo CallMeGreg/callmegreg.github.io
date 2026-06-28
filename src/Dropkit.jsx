@@ -235,7 +235,6 @@ function Dropkit() {
 
   const mainstreamCount = recommendations.filter((t) => t.tier === 'mainstream').length;
   const undergroundCount = recommendations.length - mainstreamCount;
-  const previewableCount = recommendations.filter((t) => t.soundcloudUrl).length;
 
   function copyTracklist() {
     const name = playlistName.trim() || `My ${subgenre} Set`;
@@ -268,7 +267,7 @@ function Dropkit() {
   function openAll() {
     if (
       !window.confirm(
-        'Open all 20 tracks in new SoundCloud tabs? Your browser may ask permission to allow pop-ups.'
+        `Open all ${recommendations.length} tracks in new SoundCloud tabs? Your browser may ask permission to allow pop-ups.`
       )
     )
       return;
@@ -286,7 +285,6 @@ function Dropkit() {
         <Link to="/" className="dk-home-link">← Home</Link>
         <div className="dk-brand">
           <span className="dk-logo">DropKit</span>
-          <span className="dk-tag">forge a harmonically-locked set that detonates the floor</span>
         </div>
         <button className="dk-reset" onClick={resetState}>Reset</button>
       </header>
@@ -297,8 +295,9 @@ function Dropkit() {
         <section className="dk-pick">
           <h1 className="dk-h1">Pick your subgenre</h1>
           <p className="dk-sub">
-            Learn to mix by building a set in one key &amp; tempo. Pick a sound — we&apos;ll lock 20
-            floor-fillers to the same key and BPM so every transition stays smooth.
+            Learn harmonic mixing hands-on. Pick a subgenre, then dial in the key, BPM, and artist
+            mix — DropKit pulls real SoundCloud tracks that all sit in the same key and tempo, so you
+            can preview each one and save the set as a playlist.
           </p>
           <div className="dk-genre-grid">
             {SUBGENRE_LIST.map((name) => {
@@ -431,11 +430,10 @@ function Dropkit() {
 
           {/* Results summary */}
           <div className="dk-summary">
-            <span className="dk-pill">20 tracks</span>
+            <span className="dk-pill">{recommendations.length} tracks</span>
+            <span className="dk-pill">{mainstreamCount} mainstream · {undergroundCount} underground</span>
             <span className="dk-pill">Key {CAMELOT_NAMES[targetKey]} / {targetKey}</span>
             <span className="dk-pill">~{targetBpm} BPM</span>
-            <span className="dk-pill">{mainstreamCount} mainstream · {undergroundCount} underground</span>
-            <span className="dk-pill">▶ {previewableCount} preview inline</span>
           </div>
 
           {/* Track list */}
@@ -516,7 +514,7 @@ function Dropkit() {
               >
                 Open my SoundCloud playlists ↗
               </a>
-              <button className="dk-btn" onClick={openAll}>Open all 20 tracks ↗</button>
+              <button className="dk-btn" onClick={openAll}>Open all {recommendations.length} tracks ↗</button>
             </div>
 
             <p className="dk-disclaimer">
