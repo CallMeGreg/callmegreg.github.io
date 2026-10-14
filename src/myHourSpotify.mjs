@@ -72,8 +72,9 @@ export function createSpotifyClient({
     }
   }
 
-  async function responseBody(response) {
+  async function responseBody(response, allowEmpty = false) {
     if (response.status === 204) return null;
+    if (allowEmpty && response.ok && !response.text.trim()) return null;
     try {
       return JSON.parse(response.text);
     } catch {
@@ -218,7 +219,7 @@ export function createSpotifyClient({
       disconnect();
       throw new SpotifyError('Your Spotify sign-in expired. Connect to Spotify again.', 401);
     }
-    const data = await responseBody(response);
+    const data = await responseBody(response, method === 'PUT');
     if (!response.ok) {
       throw new SpotifyError(`Spotify request failed (HTTP ${response.status})${data?.error?.message ? `: ${data.error.message}` : '.'}`, response.status);
     }
