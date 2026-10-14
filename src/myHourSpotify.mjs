@@ -72,9 +72,8 @@ export function createSpotifyClient({
     }
   }
 
-  async function responseBody(response, allowEmpty = false) {
+  async function responseBody(response) {
     if (response.status === 204) return null;
-    if (allowEmpty && response.ok && !response.text.trim()) return null;
     try {
       return JSON.parse(response.text);
     } catch {
@@ -193,7 +192,7 @@ export function createSpotifyClient({
     return refreshPromise;
   }
 
-  async function request(path, { method = 'GET', body } = {}, retry = true, rejectedToken = null) {
+  async function request(path, { method = 'GET', body, expectBody = true } = {}, retry = true, rejectedToken = null) {
     const url = new URL(path.startsWith('https://') ? path : `${API_URL}${path}`);
     if (url.origin !== 'https://api.spotify.com' || !url.pathname.startsWith('/v1/')) {
       throw new SpotifyError('Spotify returned an unexpected API address.');
@@ -207,7 +206,7 @@ export function createSpotifyClient({
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     });
-    if (response.status === 401 && retry) return request(path, { method, body }, false, token);
+    if (response.status === 401 && retry) return request(path, { method, body, expectBody }, false, token);
     if (response.status === 429) {
       const seconds = Number(response.headers.get('Retry-After'));
       throw new SpotifyError(`Spotify's request limit was reached. ${seconds > 0 ? `Wait ${seconds} seconds, then try again.` : 'Please try again later.'}`, 429);
@@ -219,7 +218,8 @@ export function createSpotifyClient({
       disconnect();
       throw new SpotifyError('Your Spotify sign-in expired. Connect to Spotify again.', 401);
     }
-    const data = await responseBody(response, method === 'PUT');
+    if (response.ok && !expectBody) return null;
+    const data = await responseBody(response);
     if (!response.ok) {
       throw new SpotifyError(`Spotify request failed (HTTP ${response.status})${data?.error?.message ? `: ${data.error.message}` : '.'}`, response.status);
     }
@@ -253,13 +253,20 @@ export function createSpotifyClient({
     playlists: () => allPages('/me/playlists?limit=50'),
     playlistItems: id => allPages(`/playlists/${encodeURIComponent(id)}/items?limit=50`),
     preparePlayback: async deviceId => {
-      await request('/me/player', { method: 'PUT', body: { device_ids: [deviceId], play: false } });
-      await request(`/me/player/repeat?state=off&device_id=${encodeURIComponent(deviceId)}`, { method: 'PUT' });
-      await request(`/me/player/shuffle?state=false&device_id=${encodeURIComponent(deviceId)}`, { method: 'PUT' });
+      await request('/me/player', {
+        method: 'PUT', body: { device_ids: [deviceId], play: false }, expectBody: false,
+      });
+      await request(`/me/player/repeat?state=off&device_id=${encodeURIComponent(deviceId)}`, {
+        method: 'PUT', expectBody: false,
+      });
+      await request(`/me/player/shuffle?state=false&device_id=${encodeURIComponent(deviceId)}`, {
+        method: 'PUT', expectBody: false,
+      });
     },
     play: (deviceId, track, positionMs) => request(`/me/player/play?device_id=${encodeURIComponent(deviceId)}`, {
       method: 'PUT',
       body: { uris: [track.uri], position_ms: Math.floor(positionMs) },
+      expectBody: false,
     }),
   };
 }
