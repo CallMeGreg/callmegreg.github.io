@@ -223,21 +223,53 @@ test('playback transfers to the browser, disables Spotify repeat/shuffle, and qu
   assert.ok(requests.every(([, options]) => options.method === 'PUT'));
 });
 
-test('Spotify playback commands accept empty HTTP 200 acknowledgements as well as HTTP 204', async () => {
+test('Spotify playback commands accept successful acknowledgements without requiring JSON', async () => {
+  for (const [status, body] of [
+    [200, ''], [200, ' \n'], [200, 'OK'], [200, '{'], [200, '{}'],
+    [202, 'Accepted'], [204, null],
+  ]) {
+    const requests = [];
+    const { client, signIn } = fixture(async (url, options) => {
+      requests.push([url, options.method]);
+      return new Response(body, { status });
+    });
+    signIn();
+    await client.preparePlayback('browser-device');
+    assert.equal(await client.play('browser-device', { uri: 'spotify:track:track1' }, 0), null);
+    assert.deepEqual(requests.map(([url]) => new URL(url).pathname), [
+      '/v1/me/player', '/v1/me/player/repeat', '/v1/me/player/shuffle', '/v1/me/player/play',
+    ]);
+    assert.ok(requests.every(([, method]) => method === 'PUT'));
+  }
+});
+
+test('playback acknowledgements still do not require JSON after a 401 refresh and retry', async () => {
   const requests = [];
+  let refreshes = 0;
   const { client, signIn } = fixture(async (url, options) => {
-    requests.push([url, options.method]);
-    return new Response(requests.length % 2 ? '' : ' \n', { status: 200 });
+    if (url.includes('/api/token')) {
+      refreshes += 1;
+      return response({ access_token: 'refreshed', expires_in: 3600 });
+    }
+    requests.push([url, options]);
+    return new Response(requests.length === 1 ? 'Expired' : 'OK', {
+      status: requests.length === 1 ? 401 : 200,
+    });
   });
   signIn();
-  await client.preparePlayback('browser-device');
-  await client.play('browser-device', { uri: 'spotify:track:track1' }, 0);
-  assert.equal(requests.length, 4);
-  assert.ok(requests.every(([, method]) => method === 'PUT'));
+  assert.equal(await client.play('browser-device', { uri: 'spotify:track:track1' }, 12_345), null);
+  assert.equal(refreshes, 1);
+  assert.equal(requests.length, 2);
+  assert.equal(requests[0][0], requests[1][0]);
+  for (const [, options] of requests) {
+    assert.equal(options.method, 'PUT');
+    assert.deepEqual(JSON.parse(options.body), { uris: ['spotify:track:track1'], position_ms: 12_345 });
+  }
+  assert.notEqual(requests[0][1].headers.Authorization, requests[1][1].headers.Authorization);
 });
 
 test('empty or non-JSON data responses must still fail rather than being treated as success', async () => {
-  for (const body of ['', ' \n', '<html>Unexpected response</html>']) {
+  for (const body of ['', ' \n', 'OK', '{', '<html>Unexpected response</html>']) {
     const { client, signIn } = fixture(async () => new Response(body, { status: 200 }));
     signIn();
     await assert.rejects(client.profile(), /unreadable response \(HTTP 200\)/);
@@ -246,14 +278,26 @@ test('empty or non-JSON data responses must still fail rather than being treated
   }
 });
 
-test('empty token responses and malformed or unsuccessful playback acknowledgements still fail', async () => {
-  const auth = fixture(async () => new Response('', { status: 200 }));
-  auth.signIn(NOW);
-  await assert.rejects(auth.client.accessToken(), /unreadable response \(HTTP 200\)/);
-  for (const [body, status] of [['not JSON', 200], ['', 500]]) {
+test('empty or non-JSON token responses still fail', async () => {
+  for (const body of ['', ' \n', 'OK', '{']) {
+    const auth = fixture(async () => new Response(body, { status: 200 }));
+    auth.signIn(NOW);
+    await assert.rejects(auth.client.accessToken(), /unreadable response \(HTTP 200\)/);
+  }
+});
+
+test('unsuccessful playback acknowledgements still fail regardless of their body format', async () => {
+  for (const [body, status, message] of [
+    ['', 500, /unreadable response \(HTTP 500\)/],
+    ['Service unavailable', 503, /unreadable response \(HTTP 503\)/],
+    [JSON.stringify({ error: { message: 'Device not found' } }), 404, /Device not found/],
+    ['', 403, /Premium.*allowlist/],
+    ['', 429, /request limit/],
+  ]) {
     const { client, signIn } = fixture(async () => new Response(body, { status }));
     signIn();
-    await assert.rejects(client.play('browser-device', { uri: 'spotify:track:track1' }, 0),
-      new RegExp(`unreadable response \\(HTTP ${status}\\)`));
+    const rejects = error => error.status === status && message.test(error.message);
+    await assert.rejects(client.preparePlayback('browser-device'), rejects);
+    await assert.rejects(client.play('browser-device', { uri: 'spotify:track:track1' }, 0), rejects);
   }
 });
