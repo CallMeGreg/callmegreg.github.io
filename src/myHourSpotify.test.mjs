@@ -222,3 +222,38 @@ test('playback transfers to the browser, disables Spotify repeat/shuffle, and qu
   assert.deepEqual(JSON.parse(requests[3][1].body), { uris: ['spotify:track:track1'], position_ms: 12_345 });
   assert.ok(requests.every(([, options]) => options.method === 'PUT'));
 });
+
+test('Spotify playback commands accept empty HTTP 200 acknowledgements as well as HTTP 204', async () => {
+  const requests = [];
+  const { client, signIn } = fixture(async (url, options) => {
+    requests.push([url, options.method]);
+    return new Response(requests.length % 2 ? '' : ' \n', { status: 200 });
+  });
+  signIn();
+  await client.preparePlayback('browser-device');
+  await client.play('browser-device', { uri: 'spotify:track:track1' }, 0);
+  assert.equal(requests.length, 4);
+  assert.ok(requests.every(([, method]) => method === 'PUT'));
+});
+
+test('empty or non-JSON data responses must still fail rather than being treated as success', async () => {
+  for (const body of ['', ' \n', '<html>Unexpected response</html>']) {
+    const { client, signIn } = fixture(async () => new Response(body, { status: 200 }));
+    signIn();
+    await assert.rejects(client.profile(), /unreadable response \(HTTP 200\)/);
+    await assert.rejects(client.playlists(), /unreadable response \(HTTP 200\)/);
+    await assert.rejects(client.playlistItems('playlist'), /unreadable response \(HTTP 200\)/);
+  }
+});
+
+test('empty token responses and malformed or unsuccessful playback acknowledgements still fail', async () => {
+  const auth = fixture(async () => new Response('', { status: 200 }));
+  auth.signIn(NOW);
+  await assert.rejects(auth.client.accessToken(), /unreadable response \(HTTP 200\)/);
+  for (const [body, status] of [['not JSON', 200], ['', 500]]) {
+    const { client, signIn } = fixture(async () => new Response(body, { status }));
+    signIn();
+    await assert.rejects(client.play('browser-device', { uri: 'spotify:track:track1' }, 0),
+      new RegExp(`unreadable response \\(HTTP ${status}\\)`));
+  }
+});
