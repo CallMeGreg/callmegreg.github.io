@@ -24,6 +24,10 @@ npm run dev -- --host 127.0.0.1
 
 Open `http://127.0.0.1:5173/`. Run `npm test` for My Hour's checks and `npm run build` to generate `build/`.
 
+My Hour treats Spotify playback commands as status-only acknowledgements: successful responses
+(including HTTP 200 and 204) do not require JSON. Token, account, and playlist responses still
+require JSON, and the minute timer starts only after the browser player confirms playback.
+
 ## Build & Deploy
 
 The site automatically builds & deploys to [https://callmegreg.github.io/](https://callmegreg.github.io/) when changes are pushed to the `main` branch.
