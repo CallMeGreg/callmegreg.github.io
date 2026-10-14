@@ -392,8 +392,8 @@ export default function MyHour() {
     playing: 'One song. One minute.',
     transition: 'Ding! Minute complete.',
     pausing: 'Pausing Spotify...',
-    paused: 'Your place is saved.',
-    error: 'Your place is saved.',
+    paused: 'Paused',
+    error: 'Playback stopped.',
     finished: session?.songNumber >= SONG_LIMIT ? 'Your hour is complete!' : 'Your playlist is complete!',
   }[playback.phase];
 
@@ -401,19 +401,13 @@ export default function MyHour() {
     <main className="my-hour">
       <header className="mh-topbar">
         <Link to="/" className="mh-quiet-button">Home</Link>
-        <span className="mh-wordmark">MY HOUR</span>
+        <h1 className="mh-wordmark">MY HOUR</h1>
         <button type="button" className="mh-quiet-button" onClick={resetState} disabled={resetting}>
           {resetting ? 'Resetting...' : 'Reset'}
         </button>
       </header>
 
       <div className="mh-content">
-        <section className="mh-intro">
-          <p className="mh-eyebrow">A LITTLE RITUAL. A LOT OF GOOD MUSIC.</p>
-          <h1>Your playlist.<br /><span>Your hour.</span></h1>
-          <p>One minute of every song, a little ding, and on to the next.</p>
-        </section>
-
         {error && <div className="mh-alert" role="alert">{error}</div>}
         {storageError && <div className="mh-alert" role="alert">{storageError}</div>}
 
@@ -422,7 +416,7 @@ export default function MyHour() {
             <div className="mh-player-heading">
               <span className={`mh-status-dot ${playback.phase === 'playing' ? 'is-playing' : ''}`} />
               <span role="status">{statusText}</span>
-              <span className="mh-mode-tag">{session?.endless ? 'ENDLESS' : 'MY HOUR'}</span>
+              {session?.endless && <span className="mh-mode-tag">ENDLESS</span>}
             </div>
             <div className="mh-clock" style={{ '--mh-progress': `${(1 - seconds / 60) * 360}deg` }}>
               <div className="mh-clock-inner">
@@ -434,7 +428,6 @@ export default function MyHour() {
               </div>
             </div>
             <output className="mh-time" aria-label="Time remaining in this song">{time}</output>
-            <span className="mh-small-label">UNTIL THE DING</span>
 
             {track ? (
               <div className="mh-now-playing">
@@ -566,20 +559,13 @@ export default function MyHour() {
                   onChange={event => updateSaved({ endless: event.target.checked })} />
               </label>
             </div>
-            <p className="mh-session-rule">
-              {saved.endless
-                ? 'No finish line. Pause whenever you like; each new cycle uses all eligible playlist entries.'
-                : 'Finish at 60 songs or the end of your playlist, whichever comes first. Confetti included.'}
-            </p>
-            {inProgress && <p className="mh-field-hint">Reset to choose a different playlist or change modes during a session.</p>}
+            {saved.endless && (
+              <p className="mh-session-rule">
+                No finish line. Pause whenever you like; each new cycle uses all eligible playlist entries.
+              </p>
+            )}
           </aside>
         </div>
-
-        <footer className="mh-footer">
-          <p>Music from Spotify. Your password stays with Spotify; sign-in is kept only in this browser tab.</p>
-          <p>Keep this tab visible and your device awake for reliable minute changes. Streaming and browser delays can affect timing.</p>
-          <p>Development access is limited to users added to this app's Spotify allowlist.</p>
-        </footer>
       </div>
 
       {blocker.state === 'blocked' && (
