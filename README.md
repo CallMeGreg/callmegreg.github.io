@@ -24,12 +24,6 @@ npm run dev -- --host 127.0.0.1
 
 Open `http://127.0.0.1:5173/`. Run `npm test` for My Hour's checks and `npm run build` to generate `build/`.
 
-## Spotify setup
-
-My Hour requires Spotify Premium and an allowlisted account (development apps support up to five users). Create an app with Web API and Web Playback SDK access in the [Spotify dashboard](https://developer.spotify.com/dashboard).
-
-Set its public Client ID as `VITE_SPOTIFY_CLIENT_ID` in `.env.local` (see `.env.example`) and as the `SPOTIFY_CLIENT_ID` Actions repository variable for deployment. Register `https://callmegreg.github.io/my-hour` and `http://127.0.0.1:5173/my-hour` as redirect URIs; never add a client secret. Playback timing can be affected by Spotify latency and browser suspension.
-
 ## Build & Deploy
 
 The site automatically builds & deploys to [https://callmegreg.github.io/](https://callmegreg.github.io/) when changes are pushed to the `main` branch.
