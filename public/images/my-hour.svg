@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="My Hour">
+  <defs>
+    <radialGradient id="background" cx="25%" cy="10%" r="100%">
+      <stop offset="0" stop-color="#34412c"/>
+      <stop offset="1" stop-color="#111318"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="400" rx="32" fill="url(#background)"/>
+  <circle cx="200" cy="200" r="110" fill="#1b1e25" stroke="#424d3c" stroke-width="8"/>
+  <path d="M200 90a110 110 0 1 1-110 110" fill="none" stroke="#b8f58c" stroke-width="8" stroke-linecap="round"/>
+  <path d="M200 126v74l44 27" fill="none" stroke="#b8f58c" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="200" cy="200" r="10" fill="#b8f58c"/>
+</svg>

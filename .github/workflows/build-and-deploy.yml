@@ -34,8 +34,13 @@ jobs:
       - name: Install dependencies
         run: npm ci --ignore-scripts
 
+      - name: Check My Hour behavior
+        run: npm test
+
       - name: Build
         run: npm run build
+        env:
+          VITE_SPOTIFY_CLIENT_ID: ${{ vars.SPOTIFY_CLIENT_ID }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
