@@ -35,23 +35,27 @@ body.my-hour-page {
   gap: 16px;
 }
 
-.mh-wordmark { font-size: 13px; font-weight: 800; letter-spacing: 4px; }
-.mh-quiet-button {
+.mh-wordmark { margin: 0; color: var(--mh-green); font-size: 13px; font-weight: 800; letter-spacing: 4px; }
+.my-hour .mh-quiet-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 80px;
+  width: 80px;
+  height: 36px;
   border: 1px solid var(--mh-border);
   border-radius: 8px;
   background: transparent;
   color: var(--mh-muted);
-  padding: 7px 15px;
+  padding: 0;
   font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
   text-decoration: none;
 }
-.mh-quiet-button:hover { color: var(--mh-text); border-color: var(--mh-muted); }
+.my-hour .mh-quiet-button:hover { color: var(--mh-text); border-color: var(--mh-muted); }
 .mh-content { max-width: 1080px; margin: 0 auto; padding: 22px 28px 30px; }
-.mh-intro { margin-bottom: 34px; }
 .mh-eyebrow { color: var(--mh-green); font-size: 11px; font-weight: 700; letter-spacing: 2px; }
-.mh-intro h1 { font-size: clamp(42px, 7vw, 72px); letter-spacing: -3px; line-height: 1.04; margin: 15px 0 18px; font-weight: 800; }
-.mh-intro h1 span { color: var(--mh-green); }
-.mh-intro > p:last-child { color: var(--mh-muted); font-size: 16px; }
 .mh-layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; align-items: start; }
 .mh-panel { background: #1b1e25; border: 1px solid var(--mh-border); border-radius: 22px; }
 .mh-player { padding: 25px 30px 28px; text-align: center; }
@@ -121,8 +125,6 @@ body.my-hour-page {
 .mh-setup-note { margin-top: 17px; padding: 12px; border: 1px solid #625639; background: #ffd8870a; color: #e0ceaa; font-size: 11px; border-radius: 9px; }
 .mh-setup-note p { margin: 8px 0 0; }
 .mh-callback { display: block; overflow-wrap: anywhere; margin-top: 9px; color: #ffdea1; }
-.mh-footer { margin-top: 26px; color: var(--mh-muted); text-align: center; font-size: 11px; }
-.mh-footer p { margin: 5px 0; }
 .mh-modal::backdrop { background: #080a10d9; }
 .mh-modal { width: min(440px, calc(100% - 40px)); color: var(--mh-text); background: #232731; border: 1px solid var(--mh-border); border-radius: 18px; padding: 28px; }
 .mh-modal h2 { margin: 0 0 12px; font-size: 24px; }
@@ -133,7 +135,6 @@ body.my-hour-page {
   .mh-layout { grid-template-columns: 1fr; }
   .mh-content { max-width: 520px; padding: 15px 18px 25px; }
   .mh-topbar { padding: 17px 18px; }
-  .mh-intro h1 { font-size: 52px; }
   .mh-settings { grid-row: 1; }
   .mh-player { padding: 23px; }
   .mh-clock { margin-top: 27px; }
