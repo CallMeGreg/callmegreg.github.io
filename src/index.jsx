@@ -1,6 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Link } from 'react-router-dom';
 import TeamGenerator from './TeamGenerator';
 import Unmatched from './Unmatched'; // Import Unmatched component
 import CoinChaser from './CoinChaser';
@@ -8,6 +8,7 @@ import HouseAlwaysWins from './HouseAlwaysWins';
 import Jeopardy from './Jeopardy';
 import Wubdle from './Wubdle';
 import Dropkit from './Dropkit';
+import MyHour from './MyHour';
 import './index.css';
 
 function Home() {
@@ -42,25 +43,30 @@ function Home() {
           <img src="/images/dropkit.svg" alt="DropKit" />
           <span>DropKit</span>
         </Link>
+        <Link to="/my-hour" className="button">
+          <img src="/images/my-hour.svg" alt="My Hour" />
+          <span>My Hour</span>
+        </Link>
       </div>
     </div>
   );
 }
 
+const router = createBrowserRouter([
+  { path: '/', element: <Home /> },
+  { path: '/team-generator', element: <TeamGenerator /> },
+  { path: '/unmatched-matchup', element: <Unmatched /> },
+  { path: '/godot-game', element: <CoinChaser /> },
+  { path: '/house-always-wins', element: <HouseAlwaysWins /> },
+  { path: '/jeopardy', element: <Jeopardy /> },
+  { path: '/wubdle', element: <Wubdle /> },
+  { path: '/dropkit', element: <Dropkit /> },
+  { path: '/my-hour', element: <MyHour /> },
+]);
+
 const root = createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/team-generator" element={<TeamGenerator />} />
-        <Route path="/unmatched-matchup" element={<Unmatched />} />
-        <Route path="/godot-game" element={<CoinChaser />} />
-        <Route path="/house-always-wins" element={<HouseAlwaysWins />} />
-        <Route path="/jeopardy" element={<Jeopardy />} />
-        <Route path="/wubdle" element={<Wubdle />} />
-        <Route path="/dropkit" element={<Dropkit />} />
-      </Routes>
-    </Router>
+    <RouterProvider router={router} />
   </React.StrictMode>
 );

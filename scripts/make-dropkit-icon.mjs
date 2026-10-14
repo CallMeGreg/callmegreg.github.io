@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 const OUT = fileURLToPath(new URL('../public/images/dropkit.svg', import.meta.url));
 
 const cx = 256;
-const cy = 232;
+const cy = 256;
 const SEG = 12;
 const gap = 2.4; // degrees of breathing room between wedges
 
@@ -54,11 +54,6 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width
       <stop offset="0.55" stop-color="#0d0820"/>
       <stop offset="1" stop-color="#03020a"/>
     </radialGradient>
-    <linearGradient id="dk-neon" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#00f6ff"/>
-      <stop offset="0.5" stop-color="#a64bff"/>
-      <stop offset="1" stop-color="#ff2bd6"/>
-    </linearGradient>
     <radialGradient id="dk-label" cx="0.5" cy="0.5" r="0.5">
       <stop offset="0" stop-color="#ff2bd6"/>
       <stop offset="0.55" stop-color="#a64bff"/>
@@ -90,8 +85,6 @@ ${wheel}  </g>
     <!-- specular sheen sweeping across the record -->
     <path d="M${cx - 52} ${cy - 30} A64 64 0 0 1 ${cx + 30} ${cy - 56}" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" opacity="0.35"/>
   </g>
-
-  <text x="256" y="476" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="54" font-weight="900" letter-spacing="3" fill="url(#dk-neon)" filter="url(#dk-glow)">DropKit</text>
 </svg>
 `;
 
