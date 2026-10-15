@@ -28,8 +28,9 @@ My Hour treats Spotify playback commands as status-only acknowledgements: succes
 (including HTTP 200 and 204) do not require JSON. Token, account, and playlist responses still
 require JSON, and the minute timer starts only after the browser player confirms playback.
 
-My Hour shows your Spotify profile picture and connection status in the account row. Expand
-the selected playlist to browse every entry in a scrollable list capped at ten visible songs;
+My Hour shows your Spotify profile picture and connection status in the account row. Use
+the reload icon beside the playlist selector to refresh playlists and songs. Expand
+the selected playlist to see its song count and browse every entry in a scrollable list capped at ten visible songs;
 entries excluded from playback are labeled. Changing playlists stops the current hour,
 clears its progress, and waits for **Start My Hour** to begin the new playlist at song 1.
 Refreshing still restores an unfinished hour paused.

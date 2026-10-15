@@ -97,10 +97,13 @@ body.my-hour-page {
 .mh-connection-status { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; color: var(--mh-muted); font-size: 12px; }
 .mh-field-label { display: block; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; margin: 27px 0 9px; color: var(--mh-muted); }
 .my-hour select { width: 100%; color: var(--mh-text); background: #111318; border: 1px solid var(--mh-border); border-radius: 9px; padding: 12px; font-size: 14px; text-overflow: ellipsis; }
+.mh-playlist-controls { display: flex; align-items: stretch; gap: 8px; }
+.mh-playlist-controls select { flex: 1; min-width: 0; }
+.mh-reload-button { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 44px; padding: 0; border: 1px solid var(--mh-border); border-radius: 9px; background: #111318; color: var(--mh-green); }
+.mh-reload-button:hover:not(:disabled) { border-color: var(--mh-green); background: #273022; }
 .mh-field-hint { font-size: 11px; color: var(--mh-muted); margin: 8px 0; }
 .mh-text-button { background: none; border: 0; color: var(--mh-green); font-size: 12px !important; padding: 2px 0; text-decoration: underline; text-underline-offset: 3px; }
 .mh-playlist-summary { margin-top: 13px; font-size: 12px; }
-.mh-playlist-summary strong { color: var(--mh-green); font-weight: 600; }
 .mh-playlist-summary span { display: block; color: var(--mh-muted); font-size: 11px; margin-top: 4px; }
 .mh-playlist-songs { margin-top: 14px; font-size: 12px; }
 .mh-playlist-songs summary { color: var(--mh-green); cursor: pointer; }

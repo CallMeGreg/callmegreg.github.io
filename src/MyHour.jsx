@@ -518,24 +518,29 @@ export default function MyHour() {
             )}
 
             <label className="mh-field-label" htmlFor="mh-playlist">YOUR PLAYLIST</label>
-            <select id="mh-playlist" value={saved.playlistId} disabled={!profile || playlistsBusy || busy || changingPlaylist || resetting}
-              onChange={event => void changePlaylist(event.target.value)}>
-              <option value="">{playlistsBusy ? 'Loading playlists...' : 'Choose a playlist'}</option>
-              {saved.playlistId && !playlists.some(playlist => playlist.id === saved.playlistId) && (
-                <option value={saved.playlistId}>{session?.playlist.name || 'Saved playlist'}</option>
+            <div className="mh-playlist-controls">
+              <select id="mh-playlist" value={saved.playlistId} disabled={!profile || playlistsBusy || busy || changingPlaylist || resetting}
+                onChange={event => void changePlaylist(event.target.value)}>
+                <option value="">{playlistsBusy ? 'Loading playlists...' : 'Choose a playlist'}</option>
+                {saved.playlistId && !playlists.some(playlist => playlist.id === saved.playlistId) && (
+                  <option value={saved.playlistId}>{session?.playlist.name || 'Saved playlist'}</option>
+                )}
+                {playlists.map(playlist => <option key={playlist.id} value={playlist.id}>{playlist.name}</option>)}
+              </select>
+              {profile && (
+                <button type="button" className="mh-reload-button" aria-label="Reload playlists" title="Reload playlists"
+                  disabled={playlistsBusy || changingPlaylist || resetting}
+                  onClick={() => { setPlaylistAttempt(attempt => attempt + 1); setTracksAttempt(attempt => attempt + 1); }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+                    <path d="M20 7v5h-5M4 17v-5h5" />
+                    <path d="M6.1 7a7 7 0 0 1 11.6-1.6L20 8M4 16l2.3 2.6A7 7 0 0 0 17.9 17" />
+                  </svg>
+                </button>
               )}
-              {playlists.map(playlist => <option key={playlist.id} value={playlist.id}>{playlist.name}</option>)}
-            </select>
-            <p className="mh-field-hint">Playlists you own or collaborate on, including private playlists.</p>
-            {inProgress && <p className="mh-field-hint">Changing playlists stops this hour and resets to song 1.</p>}
+            </div>
             {profile && !playlistsBusy && !playlists.length && !playlistsError && (
               <p className="mh-field-hint">No owned or collaborative playlists found. Create one in Spotify, then reload playlists.</p>
-            )}
-            {profile && (
-              <button type="button" className="mh-text-button" disabled={playlistsBusy || changingPlaylist || resetting}
-                onClick={() => { setPlaylistAttempt(attempt => attempt + 1); setTracksAttempt(attempt => attempt + 1); }}>
-                Reload playlists
-              </button>
             )}
             {playlistsError && <p className="mh-inline-error" role="alert">{playlistsError}</p>}
             {tracksBusy && <p className="mh-field-hint" role="status">Checking every song in this playlist...</p>}
@@ -545,9 +550,8 @@ export default function MyHour() {
                 <button type="button" className="mh-text-button" onClick={() => setTracksAttempt(attempt => attempt + 1)}>Retry songs</button>
               </div>
             )}
-            {selection && !tracksBusy && (
+            {selection && !tracksBusy && (selection.short > 0 || selection.unavailable > 0 || !selection.tracks.length) && (
               <div className="mh-playlist-summary" role="status">
-                <strong>{selection.tracks.length} eligible {selection.tracks.length === 1 ? 'song' : 'songs'}</strong>
                 {(selection.short > 0 || selection.unavailable > 0) && (
                   <span>{selection.short} under a minute; {selection.unavailable} unavailable, local, or non-music items skipped.</span>
                 )}
@@ -582,7 +586,7 @@ export default function MyHour() {
                   onChange={event => updateSaved({ shuffle: event.target.checked })} />
               </label>
               <label className="mh-toggle-row">
-                <span><strong>Endless mode</strong><small>Keep going past 60. Loop when the playlist ends.</small></span>
+                <span><strong>Endless mode</strong><small>Keep going past 60 songs and loop when the playlist ends.</small></span>
                 <input type="checkbox" checked={saved.endless} disabled={inProgress || resetting || changingPlaylist}
                   onChange={event => updateSaved({ endless: event.target.checked })} />
               </label>
