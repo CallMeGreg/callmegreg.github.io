@@ -248,7 +248,7 @@ export function createHourPlayback({
     return pausing.finally(() => { pausing = null; });
   }
 
-  async function clearSession() {
+  async function replaceSession(nextSession) {
     if (disposed) throw new Error('Reconnect the Spotify player before changing playlists.');
     await pause();
     if (disposed || phase === 'error') {
@@ -257,9 +257,13 @@ export function createHourPlayback({
     epoch += 1;
     freeze();
     cue.stop();
-    session = null;
-    phase = 'idle';
+    session = nextSession;
+    phase = session ? (session.completed ? 'finished' : 'paused') : 'idle';
     emit();
+  }
+
+  function clearSession() {
+    return replaceSession(null);
   }
 
   function dispose() {
@@ -271,7 +275,7 @@ export function createHourPlayback({
     disposed = true;
   }
 
-  return { getSnapshot, start, pause, clearSession, handleState, fail, dispose };
+  return { getSnapshot, start, pause, replaceSession, clearSession, handleState, fail, dispose };
 }
 
 export function createCanOpeningSound() {

@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  advanceSession, createSession, currentTrack, defaultState, playableTracks,
-  readSavedState, saveState, SONG_DURATION_MS, STATE_KEY,
+  advanceSession, changeSessionPlaylist, createSession, currentTrack, defaultState, playableTracks,
+  readSavedState, saveState, sessionSongLimit, SONG_DURATION_MS, STATE_KEY,
 } from './myHourSession.mjs';
 
 function tracks(count) {
@@ -99,6 +99,60 @@ test('one-track endless sessions keep looping without corrupting the order', () 
   assert.deepEqual(state.order, [0]);
 });
 
+for (const [songNumber, count, endless] of [[25, 3, false], [59, 10, false], [60, 1, false], [123, 3, true]]) {
+  test(`switching to ${count} tracks at song ${songNumber} preserves the counter and resets only the minute and queue`, () => {
+    let previous = session(100, { endless });
+    for (let number = 1; number < songNumber; number += 1) previous = advanceSession(previous);
+    previous = { ...previous, elapsedMs: 43_000 };
+    const nextTracks = tracks(count);
+    nextTracks[0].uri = 'spotify:track:new';
+    let next = changeSessionPlaylist(previous, {
+      playlist: { id: 'new', name: 'New playlist' }, tracks: nextTracks,
+    });
+    assert.equal(next.songNumber, songNumber);
+    assert.equal(next.playlistStartSongNumber, songNumber);
+    assert.equal(next.elapsedMs, 0);
+    assert.equal(next.index, 0);
+    assert.equal(next.ownerId, previous.ownerId);
+    assert.equal(next.shuffle, previous.shuffle);
+    assert.equal(next.endless, previous.endless);
+    assert.equal(currentTrack(next).uri, 'spotify:track:new');
+    assert.equal(previous.elapsedMs, 43_000);
+    const storage = memoryStorage();
+    const roundTrip = () => {
+      const state = { ...defaultState(), endless, playlistId: 'new', session: next };
+      saveState(storage, state);
+      assert.deepEqual(readSavedState(storage), { state, error: '' });
+    };
+    roundTrip();
+    const turns = endless ? 70 : Math.min(60 - songNumber + 1, count);
+    for (let turn = 0; turn < turns; turn += 1) {
+      assert.equal(next.completed, false);
+      assert.equal(next.songNumber, songNumber + turn);
+      next = advanceSession(next);
+      roundTrip();
+    }
+    assert.equal(next.completed, !endless);
+    if (!endless) assert.equal(next.songNumber, sessionSongLimit(next));
+  });
+}
+
+test('repeated shuffled playlist changes retain the global counter and create a fresh order', () => {
+  let state = session(8, { shuffle: true });
+  for (let number = 1; number < 5; number += 1) state = advanceSession(state);
+  state = changeSessionPlaylist(state, { playlist: { id: 'two', name: 'Two' }, tracks: tracks(3) }, () => 0);
+  assert.deepEqual(state.order, [1, 2, 0]);
+  assert.equal(state.songNumber, 5);
+  state = advanceSession(state);
+  state = changeSessionPlaylist(state, { playlist: { id: 'three', name: 'Three' }, tracks: tracks(1) });
+  assert.equal(state.songNumber, 6);
+  assert.equal(state.playlistStartSongNumber, 6);
+  assert.equal(sessionSongLimit(state), 6);
+  assert.equal(advanceSession(state).completed, true);
+  assert.throws(() => changeSessionPlaylist(state, { playlist: state.playlist, tracks: [] }), /no playable songs/);
+  assert.equal(state.songNumber, 6);
+});
+
 test('playlist filtering includes exactly 60-second tracks and preserves duplicate entries', () => {
   const song = {
     uri: 'spotify:track:track1', type: 'track', name: 'Song',
@@ -151,6 +205,19 @@ test('progress round-trips, and Reset removes the persisted key', () => {
   assert.equal(storage.getItem(STATE_KEY), null);
 });
 
+test('hours saved before playlist switching remain restorable', () => {
+  for (const endless of [false, true]) {
+    const storage = memoryStorage();
+    let previous = session(3, { endless });
+    for (let turn = 0; turn < 3; turn += 1) previous = advanceSession(previous);
+    delete previous.playlistStartSongNumber;
+    const state = { ...defaultState(), endless, playlistId: 'playlist', session: previous };
+    saveState(storage, state);
+    assert.deepEqual(readSavedState(storage), { state, error: '' });
+    assert.equal(sessionSongLimit(previous), 3);
+  }
+});
+
 test('bad JSON, invalid queues, and impossible counters are reported instead of restored', t => {
   const storage = memoryStorage();
   const warning = t.mock.method(console, 'warn', () => {});
@@ -161,6 +228,9 @@ test('bad JSON, invalid queues, and impossible counters are reported instead of 
     JSON.stringify({ ...defaultState(), session: { ...session(3), elapsedMs: 60_001 } }),
     JSON.stringify({ ...defaultState(), session: { ...session(3), completed: true } }),
     JSON.stringify({ ...defaultState(), session: { ...session(3), tracks: [null] } }),
+    ...[0, -1, 1.5, 2, null, '1'].map(playlistStartSongNumber =>
+      JSON.stringify({ ...defaultState(), session: { ...session(3), playlistStartSongNumber } })),
+    JSON.stringify({ ...defaultState(), session: { ...session(3), songNumber: 5, playlistStartSongNumber: 3 } }),
   ];
   for (const raw of invalidStates) {
     storage.setItem(STATE_KEY, raw);

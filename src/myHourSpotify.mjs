@@ -52,8 +52,13 @@ export function createSpotifyClient({
   function disconnect() {
     generation += 1;
     refreshPromise = null;
+    callbackPromise = null;
     storage.removeItem(TOKEN_KEY);
     storage.removeItem(LOGIN_KEY);
+  }
+
+  function checkGeneration(expectedGeneration) {
+    if (generation !== expectedGeneration) throw new SpotifyError('Spotify sign-in was cancelled.');
   }
 
   async function fetchResponse(url, options) {
@@ -88,7 +93,7 @@ export function createSpotifyClient({
       body: new URLSearchParams({ ...parameters, client_id: clientId }),
     });
     const data = await responseBody(response);
-    if (generation !== expectedGeneration) throw new SpotifyError('Spotify sign-in was cancelled.');
+    checkGeneration(expectedGeneration);
     if (!response.ok) {
       if (data?.error === 'invalid_grant') {
         disconnect();
@@ -123,7 +128,8 @@ export function createSpotifyClient({
     const verifier = base64Url(crypto.getRandomValues(new Uint8Array(64)));
     const state = base64Url(crypto.getRandomValues(new Uint8Array(32)));
     const challenge = base64Url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)));
-    if (generation !== expectedGeneration) throw new SpotifyError('Spotify sign-in was cancelled.');
+    checkGeneration(expectedGeneration);
+    callbackPromise = null;
     storage.setItem(LOGIN_KEY, JSON.stringify({
       verifier, state, clientId, redirectUri, createdAt: now(),
     }));
@@ -136,6 +142,7 @@ export function createSpotifyClient({
       state,
       code_challenge_method: 'S256',
       code_challenge: challenge,
+      show_dialog: 'true',
     }).toString();
     return url.href;
   }
@@ -146,8 +153,8 @@ export function createSpotifyClient({
     // StrictMode may mount the auth effect twice; an authorization code is single-use.
     if (callbackPromise) return callbackPromise;
     callbackPromise = (async () => {
+      const raw = storage.getItem(LOGIN_KEY);
       try {
-        const raw = storage.getItem(LOGIN_KEY);
         const login = raw ? JSON.parse(raw) : null;
         if (!login || !params.get('state') || params.get('state') !== login.state ||
             login.clientId !== clientId || login.redirectUri !== redirectUri ||
@@ -167,7 +174,7 @@ export function createSpotifyClient({
         }, null, generation);
         return true;
       } finally {
-        storage.removeItem(LOGIN_KEY);
+        if (storage.getItem(LOGIN_KEY) === raw) storage.removeItem(LOGIN_KEY);
       }
     })();
     return callbackPromise;
@@ -192,12 +199,16 @@ export function createSpotifyClient({
     return refreshPromise;
   }
 
-  async function request(path, { method = 'GET', body, expectBody = true } = {}, retry = true, rejectedToken = null) {
+  async function request(path, {
+    method = 'GET', body, expectBody = true, expectedGeneration = generation,
+  } = {}, retry = true, rejectedToken = null) {
+    checkGeneration(expectedGeneration);
     const url = new URL(path.startsWith('https://') ? path : `${API_URL}${path}`);
     if (url.origin !== 'https://api.spotify.com' || !url.pathname.startsWith('/v1/')) {
       throw new SpotifyError('Spotify returned an unexpected API address.');
     }
     const token = await accessToken(rejectedToken);
+    checkGeneration(expectedGeneration);
     const response = await fetchResponse(url.href, {
       method,
       headers: {
@@ -206,7 +217,10 @@ export function createSpotifyClient({
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     });
-    if (response.status === 401 && retry) return request(path, { method, body, expectBody }, false, token);
+    checkGeneration(expectedGeneration);
+    if (response.status === 401 && retry) {
+      return request(path, { method, body, expectBody, expectedGeneration }, false, token);
+    }
     if (response.status === 429) {
       const seconds = Number(response.headers.get('Retry-After'));
       throw new SpotifyError(`Spotify's request limit was reached. ${seconds > 0 ? `Wait ${seconds} seconds, then try again.` : 'Please try again later.'}`, 429);
@@ -220,6 +234,7 @@ export function createSpotifyClient({
     }
     if (response.ok && !expectBody) return null;
     const data = await responseBody(response);
+    checkGeneration(expectedGeneration);
     if (!response.ok) {
       throw new SpotifyError(`Spotify request failed (HTTP ${response.status})${data?.error?.message ? `: ${data.error.message}` : '.'}`, response.status);
     }
@@ -227,13 +242,15 @@ export function createSpotifyClient({
   }
 
   async function allPages(path) {
+    const expectedGeneration = generation;
     const items = [];
     const visited = new Set();
     let next = path;
     while (next) {
       if (visited.has(next)) throw new SpotifyError('Spotify returned a repeated playlist page. Please try again.');
       visited.add(next);
-      const page = await request(next);
+      const page = await request(next, { expectedGeneration });
+      checkGeneration(expectedGeneration);
       if (!Array.isArray(page?.items) || (page.next != null && typeof page.next !== 'string')) {
         throw new SpotifyError('Spotify returned an incomplete playlist response. Please try again.');
       }
@@ -253,14 +270,15 @@ export function createSpotifyClient({
     playlists: () => allPages('/me/playlists?limit=50'),
     playlistItems: id => allPages(`/playlists/${encodeURIComponent(id)}/items?limit=50`),
     preparePlayback: async deviceId => {
+      const expectedGeneration = generation;
       await request('/me/player', {
-        method: 'PUT', body: { device_ids: [deviceId], play: false }, expectBody: false,
+        method: 'PUT', body: { device_ids: [deviceId], play: false }, expectBody: false, expectedGeneration,
       });
       await request(`/me/player/repeat?state=off&device_id=${encodeURIComponent(deviceId)}`, {
-        method: 'PUT', expectBody: false,
+        method: 'PUT', expectBody: false, expectedGeneration,
       });
       await request(`/me/player/shuffle?state=false&device_id=${encodeURIComponent(deviceId)}`, {
-        method: 'PUT', expectBody: false,
+        method: 'PUT', expectBody: false, expectedGeneration,
       });
     },
     play: (deviceId, track, positionMs) => request(`/me/player/play?device_id=${encodeURIComponent(deviceId)}`, {

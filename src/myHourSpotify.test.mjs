@@ -45,6 +45,7 @@ test('PKCE login sends a SHA-256 challenge, scopes, and random state, never a cl
   assert.equal(url.searchParams.get('client_id'), CLIENT_ID);
   assert.equal(url.searchParams.get('redirect_uri'), REDIRECT_URI);
   assert.equal(url.searchParams.get('code_challenge_method'), 'S256');
+  assert.equal(url.searchParams.get('show_dialog'), 'true');
   assert.equal(url.searchParams.get('code_challenge'), createHash('sha256').update(pending.verifier).digest('base64url'));
   assert.equal(url.searchParams.get('state'), pending.state);
   assert.ok(pending.verifier.length >= 43 && pending.verifier.length <= 128);
@@ -147,6 +148,103 @@ test('reset during a refresh cannot restore credentials from the late response',
   await assert.rejects(refreshing, /cancelled/);
   assert.equal(store.getItem(TOKEN_KEY), null);
 });
+
+test('signing out clears credentials and permits a fresh authorization for another account', async () => {
+  let exchanges = 0;
+  const { client, store } = fixture(async () => {
+    exchanges += 1;
+    return response({ access_token: `access-${exchanges}`, refresh_token: `refresh-${exchanges}`, expires_in: 3600 });
+  });
+  const first = new URL(await client.authorizationUrl());
+  await client.completeAuthorization(`?code=first&state=${first.searchParams.get('state')}`);
+  assert.equal(client.isAuthenticated(), true);
+  client.disconnect();
+  assert.equal(client.isAuthenticated(), false);
+  assert.equal(store.getItem(TOKEN_KEY), null);
+  assert.equal(store.getItem(LOGIN_KEY), null);
+  const second = new URL(await client.authorizationUrl());
+  assert.equal(second.searchParams.get('show_dialog'), 'true');
+  assert.notEqual(second.searchParams.get('state'), first.searchParams.get('state'));
+  await client.completeAuthorization(`?code=second&state=${second.searchParams.get('state')}`);
+  assert.equal(exchanges, 2);
+  assert.equal(await client.accessToken(), 'access-2');
+});
+
+test('a cancelled callback cannot restore the old account or erase a new login attempt', async () => {
+  let resolve;
+  const { client, store } = fixture(() => new Promise(accept => { resolve = accept; }));
+  const first = new URL(await client.authorizationUrl());
+  const callback = client.completeAuthorization(`?code=first&state=${first.searchParams.get('state')}`);
+  const rejected = assert.rejects(callback, /cancelled/);
+  client.disconnect();
+  const second = new URL(await client.authorizationUrl());
+  resolve(response({ access_token: 'old-access', refresh_token: 'old-refresh', expires_in: 3600 }));
+  await rejected;
+  assert.equal(store.getItem(TOKEN_KEY), null);
+  assert.equal(JSON.parse(store.getItem(LOGIN_KEY)).state, second.searchParams.get('state'));
+});
+
+test('a denied login can be retried without reusing its failed callback', async () => {
+  const { client } = fixture(async () => response({
+    access_token: 'new-access', refresh_token: 'new-refresh', expires_in: 3600,
+  }));
+  const first = new URL(await client.authorizationUrl());
+  await assert.rejects(client.completeAuthorization(`?error=access_denied&state=${first.searchParams.get('state')}`), /not granted/);
+  const second = new URL(await client.authorizationUrl());
+  assert.equal(await client.completeAuthorization(`?code=second&state=${second.searchParams.get('state')}`), true);
+  assert.equal(client.isAuthenticated(), true);
+});
+
+for (const status of [200, 401]) {
+  test(`a late account response (${status}) after sign-out cannot load old data or invalidate a new login`, async () => {
+    let resolve;
+    let requests = 0;
+    const { client, signIn } = fixture(() => {
+      requests += 1;
+      return new Promise(accept => { resolve = accept; });
+    });
+    signIn();
+    const pending = client.profile();
+    const rejected = assert.rejects(pending, /cancelled/);
+    await Promise.resolve();
+    client.disconnect();
+    signIn();
+    resolve(response({ id: 'previous-account' }, status));
+    await rejected;
+    assert.equal(requests, 1);
+    assert.equal(client.isAuthenticated(), true);
+  });
+}
+
+test('sign-out cancels a playback request before dispatch even if it already read a token', async () => {
+  let requests = 0;
+  const { client, signIn } = fixture(async () => { requests += 1; return response(null, 204); });
+  signIn();
+  const playing = client.play('old-device', { uri: 'spotify:track:old' }, 0);
+  client.disconnect();
+  await assert.rejects(playing, /cancelled/);
+  assert.equal(requests, 0);
+});
+
+for (const operation of ['playlists', 'preparePlayback']) {
+  test(`sign-out cancels remaining requests in ${operation}`, async () => {
+    let resolve;
+    let requests = 0;
+    const { client, signIn } = fixture(() => {
+      requests += 1;
+      return new Promise(accept => { resolve = accept; });
+    });
+    signIn();
+    const pending = client[operation]('old-device');
+    const rejected = assert.rejects(pending, /cancelled/);
+    await Promise.resolve();
+    client.disconnect();
+    signIn();
+    resolve(response({ items: [{ id: 'old-playlist' }], next: 'https://api.spotify.com/v1/me/playlists?offset=50' }));
+    await rejected;
+    assert.equal(requests, 1);
+  });
+}
 
 test('playlists and playlist items follow every page using the current items endpoint', async () => {
   const urls = [];

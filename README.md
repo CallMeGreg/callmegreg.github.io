@@ -31,9 +31,16 @@ require JSON, and the minute timer starts only after the browser player confirms
 My Hour shows your Spotify profile picture and connection status in the account row. Use
 the reload icon beside the playlist selector to refresh playlists and songs. Expand
 the selected playlist to see its song count and browse every entry in a scrollable list capped at ten visible songs;
-entries excluded from playback are labeled. Changing playlists stops the current hour,
-clears its progress, and waits for **Start My Hour** to begin the new playlist at song 1.
-Refreshing still restores an unfinished hour paused.
+entries excluded from playback are labeled. Changing playlists during an unfinished hour
+keeps the current song number, resets the timer to **1:00**, and stays paused until **Resume**.
+The new playlist starts from its first song (or a fresh shuffled order); finite hours still
+end at song 60 or when the new playlist runs out. Refreshing restores an unfinished hour paused.
+
+Use **Sign out** to stop playback and disconnect My Hour without resetting your settings.
+Connecting again always shows Spotify's authorization screen, where **Not you?** lets you
+choose another account. Signing back in with the same account keeps your saved hour;
+connecting a different account clears the previous account's hour and playlist selection.
+Signing out of My Hour does not sign you out of Spotify in other tabs.
 
 The full-volume transition cue is a recorded can opening, played only while Spotify is paused.
 `public/sounds/can-opening.mp3` is the high-quality MP3 preview of
