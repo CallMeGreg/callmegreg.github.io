@@ -2,8 +2,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useBlocker, useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import {
-  createSession, currentTrack, defaultState, playableTracks, readSavedState,
-  saveState, SONG_DURATION_MS, SONG_LIMIT, trackUrl,
+  changeSessionPlaylist, createSession, currentTrack, defaultState, playableTracks, readSavedState,
+  saveState, sessionSongLimit, SONG_DURATION_MS, SONG_LIMIT, trackUrl,
 } from './myHourSession.mjs';
 import { createSpotifyClient, loadSpotifySdk } from './myHourSpotify.mjs';
 import { createCanOpeningSound, createHourPlayback } from './myHourPlayback.mjs';
@@ -44,7 +44,10 @@ export default function MyHour() {
   const [tracksError, setTracksError] = useState('');
   const [tracksAttempt, setTracksAttempt] = useState(0);
   const [changingPlaylist, setChangingPlaylist] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const preparedSelectionRef = useRef(null);
+  const playlistChangeRef = useRef(0);
   const controllerRef = useRef(null);
   const leaveDialogRef = useRef(null);
   const allowNavigationRef = useRef(false);
@@ -74,7 +77,10 @@ export default function MyHour() {
 
   useEffect(() => {
     document.body.classList.add('my-hour-page');
-    return () => document.body.classList.remove('my-hour-page');
+    return () => {
+      playlistChangeRef.current += 1;
+      document.body.classList.remove('my-hour-page');
+    };
   }, []);
 
   useEffect(() => {
@@ -129,9 +135,16 @@ export default function MyHour() {
   }, [spotify, profile, playlistAttempt]);
 
   useEffect(() => {
+    const prepared = preparedSelectionRef.current;
+    preparedSelectionRef.current = null;
     setSelection(null);
     setTracksError('');
     if (!profile || !saved.playlistId) {
+      setTracksBusy(false);
+      return;
+    }
+    if (prepared?.playlistId === saved.playlistId && prepared.ownerId === profile.id) {
+      setSelection(prepared);
       setTracksBusy(false);
       return;
     }
@@ -236,7 +249,7 @@ export default function MyHour() {
         if (deviceId) failPlayer(new Error('Spotify disconnected from this browser. Reconnect the player to resume your saved progress.'));
       });
       player.addListener('initialization_error', ({ message }) => failPlayer(new Error(`Spotify cannot play in this browser: ${message}`)));
-      player.addListener('authentication_error', ({ message }) => failPlayer(new Error(`Spotify authentication failed. Reset and connect again. ${message}`)));
+      player.addListener('authentication_error', ({ message }) => failPlayer(new Error(`Spotify authentication failed. Sign out and connect again. ${message}`)));
       player.addListener('account_error', () => failPlayer(new Error('Spotify Premium is required. Check your subscription, then reconnect the player.')));
       player.addListener('playback_error', ({ message }) => failPlayer(new Error(`Spotify playback failed: ${message}`)));
       player.addListener('autoplay_failed', () => failPlayer(new Error('Your browser blocked playback. Reconnect the player and click Resume to allow audio.')));
@@ -354,16 +367,70 @@ export default function MyHour() {
   }
 
   async function changePlaylist(playlistId) {
+    if (playlistId === savedRef.current.playlistId) return;
+    const change = ++playlistChangeRef.current;
     setChangingPlaylist(true);
     setError('');
     try {
-      await controllerRef.current?.clearSession();
-      updateSaved({ playlistId, session: null });
-      setPlayback(initialPlayback(null));
+      let nextSession = null;
+      let nextSelection = null;
+      if (savedRef.current.session && !savedRef.current.session.completed) {
+        await controllerRef.current?.pause();
+        if (controllerRef.current?.getSnapshot().phase === 'error') {
+          throw new Error('Reconnect the Spotify player before changing playlists. Your progress is saved.');
+        }
+        const playlist = playlists.find(item => item.id === playlistId);
+        if (!playlist) throw new Error('Choose a playlist to continue your hour.');
+        nextSelection = { playlistId, ownerId: profile.id, ...playableTracks(await spotify.playlistItems(playlistId)) };
+        if (change !== playlistChangeRef.current) return;
+        nextSession = changeSessionPlaylist(savedRef.current.session, {
+          playlist, tracks: nextSelection.tracks,
+        });
+      }
+      await controllerRef.current?.replaceSession(nextSession);
+      if (change !== playlistChangeRef.current) return;
+      preparedSelectionRef.current = nextSelection;
+      updateSaved({ playlistId, session: nextSession });
+      setPlayback(initialPlayback(nextSession));
     } catch (playlistError) {
-      setError(playlistError.message);
+      if (change === playlistChangeRef.current) setError(playlistError.message);
     } finally {
-      setChangingPlaylist(false);
+      if (change === playlistChangeRef.current) setChangingPlaylist(false);
+    }
+  }
+
+  function disconnectSpotify() {
+    controllerRef.current?.dispose();
+    controllerRef.current = null;
+    spotify.disconnect();
+    playlistChangeRef.current += 1;
+    preparedSelectionRef.current = null;
+    setProfile(null);
+    setFailedAvatarUrl('');
+    setPlaylists([]);
+    setPlaylistsBusy(false);
+    setSelection(null);
+    setTracksBusy(false);
+    setPlayerStatus('disconnected');
+    setError('');
+    setPlaylistsError('');
+    setTracksError('');
+    setAuthAttempt(attempt => attempt + 1);
+  }
+
+  async function signOut() {
+    setSigningOut(true);
+    setError('');
+    try {
+      await controllerRef.current?.pause();
+      const current = controllerRef.current?.getSnapshot().session ?? savedRef.current.session;
+      updateSaved({ session: current, playlistId: current?.playlist.id || '' });
+      disconnectSpotify();
+      setPlayback(initialPlayback(current));
+    } catch (signOutError) {
+      setError(`My Hour could not fully sign out: ${signOutError.message}`);
+    } finally {
+      setSigningOut(false);
     }
   }
 
@@ -375,19 +442,9 @@ export default function MyHour() {
       return;
     }
     try {
-      controllerRef.current?.dispose();
-      controllerRef.current = null;
-      spotify.disconnect();
+      disconnectSpotify();
       updateSaved(defaultState());
       setPlayback(initialPlayback(null));
-      setProfile(null);
-      setPlaylists([]);
-      setSelection(null);
-      setPlayerStatus('disconnected');
-      setError('');
-      setPlaylistsError('');
-      setTracksError('');
-      setAuthAttempt(attempt => attempt + 1);
     } catch (resetError) {
       setError(`My Hour could not fully reset: ${resetError.message}`);
     } finally {
@@ -399,9 +456,10 @@ export default function MyHour() {
   const seconds = Math.ceil((SONG_DURATION_MS - (playback.session?.elapsedMs || 0)) / 1000);
   const time = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
   const busy = ['starting', 'transition', 'pausing'].includes(playback.phase);
+  const controlsLocked = resetting || changingPlaylist || signingOut;
   const readyToStart = playerStatus === 'ready' && !tracksBusy && selection?.playlistId === saved.playlistId &&
-    selection.tracks.length > 0 && !resetting && !changingPlaylist;
-  const limit = session ? Math.min(SONG_LIMIT, session.tracks.length) : SONG_LIMIT;
+    selection.tracks.length > 0 && !controlsLocked;
+  const limit = session ? sessionSongLimit(session) : SONG_LIMIT;
   const statusText = {
     starting: 'Waiting for Spotify...',
     transition: 'Minute complete...',
@@ -419,7 +477,7 @@ export default function MyHour() {
       <header className="mh-topbar">
         <Link to="/" className="mh-quiet-button">Home</Link>
         <h1 className="mh-wordmark">MY HOUR</h1>
-        <button type="button" className="mh-quiet-button" onClick={resetState} disabled={resetting || changingPlaylist}>
+        <button type="button" className="mh-quiet-button" onClick={resetState} disabled={controlsLocked}>
           {resetting ? 'Resetting...' : 'Reset'}
         </button>
       </header>
@@ -467,10 +525,10 @@ export default function MyHour() {
             <div className="mh-play-controls">
               {inProgress ? (
                 playback.phase === 'playing' ? (
-                  <button type="button" className="mh-primary" onClick={() => void controllerRef.current?.pause()} disabled={resetting || changingPlaylist}>Pause</button>
+                  <button type="button" className="mh-primary" onClick={() => void controllerRef.current?.pause()} disabled={controlsLocked}>Pause</button>
                 ) : (
-                  <button type="button" className="mh-primary" onClick={resumeSession} disabled={busy || playerStatus !== 'ready' || resetting || changingPlaylist}>
-                    {busy ? statusText : 'Resume'}
+                  <button type="button" className="mh-primary" onClick={resumeSession} disabled={busy || playerStatus !== 'ready' || controlsLocked}>
+                    {changingPlaylist ? 'Changing playlist...' : busy ? statusText : 'Resume'}
                   </button>
                 )
               ) : (
@@ -497,15 +555,27 @@ export default function MyHour() {
               </div>
             </div>
             {!profile ? (
-              <button type="button" className="mh-spotify-button" onClick={connectSpotify} disabled={!CONFIGURED || authBusy || resetting}>
+              <button type="button" className="mh-spotify-button" onClick={connectSpotify} disabled={!CONFIGURED || authBusy || controlsLocked}>
                 {authBusy ? 'Connecting...' : 'Connect to Spotify'}
               </button>
-            ) : playerStatus === 'error' && (
+            ) : (
               <div className="mh-connection-status">
-                <button type="button" className="mh-text-button" onClick={() => { setError(''); setPlayerAttempt(attempt => attempt + 1); }}>
-                  Reconnect player
+                <button type="button" className="mh-text-button" onClick={signOut} disabled={controlsLocked}>
+                  {signingOut ? 'Signing out...' : 'Sign out'}
                 </button>
+                {playerStatus === 'error' && (
+                  <button type="button" className="mh-text-button" disabled={controlsLocked}
+                    onClick={() => { setError(''); setPlayerAttempt(attempt => attempt + 1); }}>
+                    Reconnect player
+                  </button>
+                )}
               </div>
+            )}
+            {!profile && !authBusy && (
+              <p className="mh-field-hint">
+                To use a different account, choose &quot;Not you?&quot; on Spotify's authorization screen.
+                {session && ' Your saved hour can be resumed by signing back in with the same account.'}
+              </p>
             )}
 
             {!CONFIGURED && (
@@ -519,9 +589,9 @@ export default function MyHour() {
 
             <label className="mh-field-label" htmlFor="mh-playlist">YOUR PLAYLIST</label>
             <div className="mh-playlist-controls">
-              <select id="mh-playlist" value={saved.playlistId} disabled={!profile || playlistsBusy || busy || changingPlaylist || resetting}
+              <select id="mh-playlist" value={saved.playlistId} disabled={!profile || playlistsBusy || busy || controlsLocked}
                 onChange={event => void changePlaylist(event.target.value)}>
-                <option value="">{playlistsBusy ? 'Loading playlists...' : 'Choose a playlist'}</option>
+                <option value="" disabled={inProgress}>{playlistsBusy ? 'Loading playlists...' : 'Choose a playlist'}</option>
                 {saved.playlistId && !playlists.some(playlist => playlist.id === saved.playlistId) && (
                   <option value={saved.playlistId}>{session?.playlist.name || 'Saved playlist'}</option>
                 )}
@@ -529,7 +599,7 @@ export default function MyHour() {
               </select>
               {profile && (
                 <button type="button" className="mh-reload-button" aria-label="Reload playlists" title="Reload playlists"
-                  disabled={playlistsBusy || changingPlaylist || resetting}
+                  disabled={playlistsBusy || controlsLocked}
                   onClick={() => { setPlaylistAttempt(attempt => attempt + 1); setTracksAttempt(attempt => attempt + 1); }}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
@@ -547,7 +617,8 @@ export default function MyHour() {
             {tracksError && (
               <div className="mh-inline-error" role="alert">
                 <p>{tracksError}</p>
-                <button type="button" className="mh-text-button" onClick={() => setTracksAttempt(attempt => attempt + 1)}>Retry songs</button>
+                <button type="button" className="mh-text-button" disabled={controlsLocked}
+                  onClick={() => setTracksAttempt(attempt => attempt + 1)}>Retry songs</button>
               </div>
             )}
             {selection && !tracksBusy && (selection.short > 0 || selection.unavailable > 0 || !selection.tracks.length) && (
@@ -582,12 +653,12 @@ export default function MyHour() {
             <div className="mh-options">
               <label className="mh-toggle-row">
                 <span><strong>Shuffle</strong><small>A fresh order, no repeats within a cycle.</small></span>
-                <input type="checkbox" checked={saved.shuffle} disabled={inProgress || resetting || changingPlaylist}
+                <input type="checkbox" checked={saved.shuffle} disabled={inProgress || controlsLocked}
                   onChange={event => updateSaved({ shuffle: event.target.checked })} />
               </label>
               <label className="mh-toggle-row">
                 <span><strong>Endless mode</strong><small>Keep going past 60 songs and loop when the playlist ends.</small></span>
-                <input type="checkbox" checked={saved.endless} disabled={inProgress || resetting || changingPlaylist}
+                <input type="checkbox" checked={saved.endless} disabled={inProgress || controlsLocked}
                   onChange={event => updateSaved({ endless: event.target.checked })} />
               </label>
             </div>

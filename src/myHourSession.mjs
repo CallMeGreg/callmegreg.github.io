@@ -75,6 +75,7 @@ export function createSession({ ownerId, playlist, tracks, shuffle, endless }, r
     order: makeOrder(tracks.length, shuffle, random),
     index: 0,
     songNumber: 1,
+    playlistStartSongNumber: 1,
     elapsedMs: 0,
     shuffle,
     endless,
@@ -84,6 +85,18 @@ export function createSession({ ownerId, playlist, tracks, shuffle, endless }, r
 
 export function currentTrack(session) {
   return session.tracks[session.order[session.index]];
+}
+
+export function changeSessionPlaylist(session, { playlist, tracks }, random = Math.random) {
+  return {
+    ...createSession({ ...session, playlist, tracks }, random),
+    songNumber: session.songNumber,
+    playlistStartSongNumber: session.songNumber,
+  };
+}
+
+export function sessionSongLimit(session) {
+  return Math.min(SONG_LIMIT, (session.playlistStartSongNumber ?? 1) + session.tracks.length - 1);
 }
 
 export function advanceSession(session, random = Math.random) {
@@ -124,13 +137,17 @@ function validSession(session) {
       !Number.isInteger(session.index) || session.index < 0 || session.index >= session.order.length) {
     return false;
   }
-  if (!session.endless && (session.songNumber > Math.min(SONG_LIMIT, session.tracks.length) ||
-      session.index !== session.songNumber - 1)) return false;
-  if (session.endless && (session.completed || session.index !== (session.songNumber - 1) % session.tracks.length)) {
+  // Older saved hours always started their playlist on song 1.
+  const playlistStart = session.playlistStartSongNumber === undefined ? 1 : session.playlistStartSongNumber;
+  if (!Number.isSafeInteger(playlistStart) || playlistStart < 1 || playlistStart > session.songNumber) return false;
+  const playlistOffset = session.songNumber - playlistStart;
+  if (!session.endless && (session.songNumber > sessionSongLimit(session) ||
+      session.index !== playlistOffset)) return false;
+  if (session.endless && (session.completed || session.index !== playlistOffset % session.tracks.length)) {
     return false;
   }
   if (session.completed && (session.elapsedMs !== SONG_DURATION_MS ||
-      session.songNumber !== Math.min(SONG_LIMIT, session.tracks.length))) return false;
+      session.songNumber !== sessionSongLimit(session))) return false;
   return session.tracks.every(track =>
     /^spotify:track:[a-zA-Z0-9]+$/.test(track?.uri) &&
     typeof track.name === 'string' && typeof track.artists === 'string' &&

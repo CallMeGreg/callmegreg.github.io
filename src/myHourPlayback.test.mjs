@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHourPlayback, createCanOpeningSound } from './myHourPlayback.mjs';
-import { createSession, SONG_DURATION_MS } from './myHourSession.mjs';
+import { changeSessionPlaylist, createSession, SONG_DURATION_MS } from './myHourSession.mjs';
 
 const flush = async () => {
   for (let index = 0; index < 20; index += 1) await Promise.resolve();
@@ -310,7 +310,7 @@ test('a track ending naturally at exactly one minute completes its turn', async 
   assert.equal(f.completions.length, 1);
 });
 
-test('changing a playing playlist stops the old hour and waits for a new Start', async t => {
+test('clearing an hour stops playback and waits for a new Start', async t => {
   const f = fixture(t);
   await f.player.start(makeSession());
   await f.advance(22_000);
@@ -329,6 +329,99 @@ test('changing a playing playlist stops the old hour and waits for a new Start',
   assert.equal(f.player.getSnapshot().session.songNumber, 1);
   assert.equal(f.player.getSnapshot().session.elapsedMs, 0);
   assert.deepEqual(f.events.filter(event => event[0] === 'play').at(-1), ['play', 'spotify:track:new', 0]);
+});
+
+for (const phase of ['playing', 'paused']) {
+  test(`switching a ${phase} playlist keeps song 3, resets to 1:00, and waits for Resume`, async t => {
+    const f = fixture(t);
+    await f.player.start(makeSession(10));
+    await f.advance(SONG_DURATION_MS);
+    await f.advance(SONG_DURATION_MS);
+    await f.advance(22_000);
+    if (phase === 'paused') await f.player.pause();
+    const next = makeSession(5);
+    next.playlist = { id: 'new', name: 'New playlist' };
+    next.tracks[0].uri = 'spotify:track:new';
+    await f.player.replaceSession(changeSessionPlaylist(f.player.getSnapshot().session, next));
+    assert.equal(f.player.getSnapshot().phase, 'paused');
+    assert.equal(f.player.getSnapshot().session.songNumber, 3);
+    assert.equal(f.player.getSnapshot().session.elapsedMs, 0);
+    assert.equal(f.player.getSnapshot().session.index, 0);
+    const snapshot = f.player.getSnapshot();
+    await f.advance(120_000);
+    assert.deepEqual(f.player.getSnapshot(), snapshot);
+    assert.equal(f.events.filter(event => event[0] === 'play').length, 3);
+    assert.equal(f.events.filter(event => event[0] === 'cue').length, 2);
+    await f.player.start();
+    assert.deepEqual(f.events.filter(event => event[0] === 'play').at(-1), ['play', 'spotify:track:new', 0]);
+    await f.advance(59_999);
+    assert.equal(f.player.getSnapshot().session.songNumber, 3);
+    await f.advance(1);
+    assert.equal(f.player.getSnapshot().session.songNumber, 4);
+    assert.equal(f.errors.length, 0);
+  });
+}
+
+test('a switched playlist restored after refresh resumes the saved count and new track at zero', async t => {
+  const previous = { ...makeSession(10), songNumber: 7, index: 6, elapsedMs: 28_000 };
+  const saved = changeSessionPlaylist(previous, makeSession(2));
+  const f = fixture(t, { initialSession: saved });
+  assert.equal(f.player.getSnapshot().phase, 'paused');
+  assert.equal(f.player.getSnapshot().session.songNumber, 7);
+  await f.player.start();
+  assert.equal(f.events.find(event => event[0] === 'play')[2], 0);
+  await f.advance(SONG_DURATION_MS);
+  assert.equal(f.player.getSnapshot().session.songNumber, 8);
+  await f.advance(SONG_DURATION_MS);
+  assert.equal(f.player.getSnapshot().phase, 'finished');
+  assert.equal(f.completions.length, 1);
+});
+
+for (const command of ['prepare', 'play']) {
+  test(`replacing a playlist settles a pending ${command} before saving the paused replacement`, async t => {
+    const request = deferred();
+    const f = fixture(t, { transport: { [command]: () => request.promise } });
+    const starting = f.player.start(makeSession());
+    await flush();
+    const next = changeSessionPlaylist(f.player.getSnapshot().session, makeSession(2));
+    const replacing = f.player.replaceSession(next);
+    await flush();
+    assert.equal(f.events.filter(event => event[0] === 'pause').length, 0);
+    request.resolve();
+    await Promise.all([starting, replacing]);
+    assert.equal(f.events.filter(event => event[0] === 'pause').length, 1);
+    assert.deepEqual(f.player.getSnapshot(), { phase: 'paused', session: next });
+    await f.advance(120_000);
+    assert.deepEqual(f.player.getSnapshot(), { phase: 'paused', session: next });
+  });
+}
+
+test('a failed playlist replacement preserves the old queue, counter, and elapsed time', async t => {
+  const f = fixture(t, { transport: { pause: async () => { throw new Error('Pause failed'); } } });
+  await f.player.start(makeSession());
+  await f.advance(20_000);
+  const next = changeSessionPlaylist(f.player.getSnapshot().session, makeSession(2));
+  await assert.rejects(f.player.replaceSession(next), /could not stop/);
+  assert.equal(f.player.getSnapshot().session.tracks.length, 3);
+  assert.equal(f.player.getSnapshot().session.songNumber, 1);
+  assert.equal(f.player.getSnapshot().session.elapsedMs, 20_000);
+  assert.equal(f.player.getSnapshot().phase, 'error');
+});
+
+test('signing out pauses and disconnects without losing the saved minute or allowing late audio', async t => {
+  const f = fixture(t);
+  await f.player.start(makeSession());
+  await f.advance(SONG_DURATION_MS);
+  await f.advance(23_000);
+  await f.player.pause();
+  const saved = f.player.getSnapshot();
+  f.player.dispose();
+  await f.advance(120_000);
+  assert.equal(f.isDisconnected(), true);
+  assert.deepEqual(f.player.getSnapshot(), saved);
+  assert.equal(saved.session.songNumber, 2);
+  assert.equal(saved.session.elapsedMs, 23_000);
+  assert.equal(f.events.filter(event => event[0] === 'play').length, 2);
 });
 
 for (const phase of ['paused', 'finished']) {
