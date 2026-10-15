@@ -14,11 +14,20 @@ export function defaultState() {
 
 export function playableTracks(items) {
   const tracks = [];
+  const entries = [];
   let short = 0;
   let unavailable = 0;
 
   for (const entry of items) {
     const track = entry?.item ?? entry?.track;
+    const song = {
+      uri: /^spotify:track:[a-zA-Z0-9]+$/.test(track?.uri) ? track.uri : '',
+      name: typeof track?.name === 'string' ? track.name : 'Unavailable item',
+      artists: Array.isArray(track?.artists)
+        ? track.artists.filter(artist => typeof artist?.name === 'string').map(artist => artist.name).join(', ')
+        : '',
+      skipped: '',
+    };
     if (!track || track.type !== 'track' || entry.is_local || track.is_local ||
         track.is_playable === false || track.restrictions?.reason ||
         !/^spotify:track:[a-zA-Z0-9]+$/.test(track.uri) ||
@@ -26,20 +35,24 @@ export function playableTracks(items) {
         track.artists.some(artist => typeof artist?.name !== 'string') ||
         !Number.isFinite(track.duration_ms)) {
       unavailable += 1;
+      song.skipped = entry?.is_local || track?.is_local ? 'Local file'
+        : track && track.type !== 'track' ? 'Not a song' : 'Unavailable';
     } else if (track.duration_ms < SONG_DURATION_MS) {
       short += 1;
+      song.skipped = 'Under one minute';
     } else {
       tracks.push({
         uri: track.uri,
         name: track.name,
-        artists: track.artists.map(artist => artist.name).join(', '),
+        artists: song.artists,
         imageUrl: track.album?.images?.[0]?.url || '',
         durationMs: track.duration_ms,
       });
     }
+    entries.push(song);
   }
 
-  return { tracks, short, unavailable };
+  return { tracks, entries, short, unavailable };
 }
 
 function makeOrder(length, shuffle, random) {

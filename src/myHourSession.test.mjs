@@ -119,7 +119,27 @@ test('playlist filtering includes exactly 60-second tracks and preserves duplica
   assert.equal(result.short, 2);
   assert.equal(result.unavailable, 7);
   assert.equal(result.tracks[0].durationMs, SONG_DURATION_MS);
+  assert.equal(result.entries.length, 11);
+  assert.deepEqual(result.entries.slice(0, 3).map(entry => entry.skipped), ['', '', 'Under one minute']);
+  assert.deepEqual(result.entries.slice(4).map(entry => entry.skipped),
+    ['Unavailable', 'Unavailable', 'Not a song', 'Local file', 'Local file', 'Unavailable', 'Unavailable']);
+  assert.equal(result.entries[0].name, 'Song');
+  assert.equal(result.entries[0].artists, 'Artist');
+  assert.equal(result.entries[9].name, 'Unavailable item');
   assert.throws(() => session(0), /no playable songs/);
+});
+
+test('playlist previews retain all entries beyond ten without truncating long playlists', () => {
+  const items = Array.from({ length: 125 }, (_, index) => ({
+    item: {
+      uri: `spotify:track:track${index}`, type: 'track', name: `Song ${index}`,
+      artists: [{ name: 'Artist' }], duration_ms: 180_000,
+    },
+  }));
+  const result = playableTracks(items);
+  assert.equal(result.entries.length, 125);
+  assert.equal(result.entries.at(-1).name, 'Song 124');
+  assert.equal(result.tracks.length, 125);
 });
 
 test('progress round-trips, and Reset removes the persisted key', () => {

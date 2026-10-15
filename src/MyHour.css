@@ -55,14 +55,10 @@ body.my-hour-page {
 }
 .my-hour .mh-quiet-button:hover { color: var(--mh-text); border-color: var(--mh-muted); }
 .mh-content { max-width: 1080px; margin: 0 auto; padding: 22px 28px 30px; }
-.mh-eyebrow { color: var(--mh-green); font-size: 11px; font-weight: 700; letter-spacing: 2px; }
 .mh-layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; align-items: start; }
 .mh-panel { background: #1b1e25; border: 1px solid var(--mh-border); border-radius: 22px; }
 .mh-player { padding: 25px 30px 28px; text-align: center; }
-.mh-player-heading { display: flex; gap: 8px; align-items: center; text-align: left; color: var(--mh-muted); font-size: 12px; }
-.mh-status-dot { width: 7px; height: 7px; flex-shrink: 0; border-radius: 50%; background: #a7adb7; }
-.mh-status-dot.is-playing { background: var(--mh-green); box-shadow: 0 0 12px #b8f56660; }
-.mh-mode-tag { margin-left: auto; padding: 4px 7px; border: 1px solid var(--mh-border); border-radius: 5px; font-size: 9px; white-space: nowrap; letter-spacing: 1px; }
+.mh-mode-tag { display: table; margin-left: auto; padding: 4px 7px; border: 1px solid var(--mh-border); border-radius: 5px; font-size: 9px; white-space: nowrap; letter-spacing: 1px; }
 .mh-clock {
   width: 230px;
   height: 230px;
@@ -90,17 +86,12 @@ body.my-hour-page {
 .mh-primary:hover:not(:disabled) { background: #ccffab; }
 .mh-play-controls .mh-primary { width: 100%; }
 .mh-secondary { background: #323741; color: var(--mh-text); }
-.mh-saved-note { font-size: 12px; color: var(--mh-muted); margin: 16px 0 0; }
 .mh-completion { color: var(--mh-green); font-size: 14px; }
 .mh-settings { padding: 26px; }
-.mh-settings > .mh-eyebrow { margin: 0 0 9px; }
-.mh-settings h2 { font-size: 26px; line-height: 1.2; margin: 0 0 22px; letter-spacing: -0.7px; }
 .mh-account { display: flex; align-items: center; gap: 12px; }
-.mh-account-icon { width: 38px; height: 38px; border: 1px solid var(--mh-border); border-radius: 50%; display: grid; place-items: center; color: var(--mh-muted); font-weight: 800; }
-.mh-account-icon.is-connected { background: #1ed760; color: #121212; border-color: #1ed760; }
+.mh-account-icon { width: 38px; height: 38px; flex: 0 0 38px; object-fit: cover; border: 1px solid var(--mh-border); border-radius: 50%; display: grid; place-items: center; color: var(--mh-muted); font-weight: 800; }
 .mh-account > div { min-width: 0; }
 .mh-account strong { font-size: 13px; overflow-wrap: anywhere; }
-.mh-account p { font-size: 11px; color: var(--mh-muted); margin: 3px 0 0; }
 .mh-spotify-button { width: 100%; margin-top: 18px; background: #1ed760; color: #121212; }
 .mh-spotify-button:hover:not(:disabled) { background: #3be477; }
 .mh-connection-status { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; color: var(--mh-muted); font-size: 12px; }
@@ -111,6 +102,17 @@ body.my-hour-page {
 .mh-playlist-summary { margin-top: 13px; font-size: 12px; }
 .mh-playlist-summary strong { color: var(--mh-green); font-weight: 600; }
 .mh-playlist-summary span { display: block; color: var(--mh-muted); font-size: 11px; margin-top: 4px; }
+.mh-playlist-songs { margin-top: 14px; font-size: 12px; }
+.mh-playlist-songs summary { color: var(--mh-green); cursor: pointer; }
+.mh-playlist-songs ol { max-height: 562px; overflow-y: auto; overscroll-behavior: contain; margin: 10px 0 0; padding: 0; border: 1px solid var(--mh-border); border-radius: 9px; list-style: none; }
+.mh-playlist-songs li { height: 56px; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-bottom: 1px solid var(--mh-border); }
+.mh-playlist-songs li:last-child { border-bottom: 0; }
+.mh-song-position { flex: 0 0 28px; color: var(--mh-muted); font-variant-numeric: tabular-nums; text-align: right; }
+.mh-playlist-songs li > div { min-width: 0; }
+.mh-playlist-songs a, .mh-playlist-songs strong, .mh-playlist-songs small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mh-playlist-songs a, .mh-playlist-songs strong { font-weight: 600; text-decoration: none; }
+.mh-playlist-songs a:hover { text-decoration: underline; }
+.mh-playlist-songs small { color: var(--mh-muted); font-size: 11px; }
 .mh-options { margin-top: 22px; border-top: 1px solid var(--mh-border); }
 .mh-toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--mh-border); padding: 18px 0; cursor: pointer; }
 .mh-toggle-row strong { display: block; font-size: 14px; }

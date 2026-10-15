@@ -2,7 +2,7 @@ import { advanceSession, currentTrack, SONG_DURATION_MS } from './myHourSession.
 
 export function createHourPlayback({
   transport,
-  bell,
+  cue,
   initialSession = null,
   onChange,
   onError,
@@ -17,6 +17,8 @@ export function createHourPlayback({
   let pollInterval;
   let polling = false;
   let pendingPlay = null;
+  let pendingPreparation = null;
+  let pausing = null;
   let epoch = 0;
   let disposed = false;
   let acceptingPlayback = false;
@@ -51,7 +53,7 @@ export function createHourPlayback({
     if (disposed) return;
     epoch += 1;
     freeze();
-    bell.stop();
+    cue.stop();
     phase = 'error';
     // Disconnecting also prevents a late Web API play request from restarting audio.
     transport.disconnect();
@@ -169,8 +171,8 @@ export function createHourPlayback({
     try {
       await transport.pause();
       if (disposed || expectedEpoch !== epoch) return;
-      // The bell is separate from Spotify audio: pause, ding, then start the next song.
-      await bell.ring();
+      // Keep the can-opening sound separate from Spotify playback.
+      await cue.play();
       if (disposed || expectedEpoch !== epoch) return;
       session = advanceSession(session);
       if (session.completed) {
@@ -198,9 +200,10 @@ export function createHourPlayback({
     emit();
     try {
       // Both activation calls must originate directly from the user's click on mobile.
-      await Promise.all([transport.activate(), bell.activate()]);
+      await Promise.all([transport.activate(), cue.activate()]);
       if (disposed || expectedEpoch !== epoch) return;
-      await transport.prepare();
+      pendingPreparation = transport.prepare();
+      await pendingPreparation;
       if (disposed || expectedEpoch !== epoch) return;
       if (session.elapsedMs >= SONG_DURATION_MS) {
         await finishSong();
@@ -209,110 +212,141 @@ export function createHourPlayback({
       await playCurrent(expectedEpoch);
     } catch (error) {
       if (!disposed && expectedEpoch === epoch) fail(error);
+    } finally {
+      pendingPreparation = null;
     }
   }
 
-  async function pause() {
-    if (disposed || !['starting', 'playing', 'transition'].includes(phase)) return;
+  function pause() {
+    if (pausing) return pausing;
+    if (disposed || !['starting', 'playing', 'transition'].includes(phase)) return Promise.resolve();
     const expectedEpoch = ++epoch;
     freeze();
-    bell.stop();
+    cue.stop();
     phase = 'pausing';
     emit();
-    try {
-      // A play already sent to Spotify must settle before sending the final pause.
-      if (pendingPlay) await pendingPlay;
-      if (disposed || expectedEpoch !== epoch) return;
-      await transport.pause();
-      if (disposed || expectedEpoch !== epoch) return;
-      const state = await transport.getState();
-      if (disposed || expectedEpoch !== epoch) return;
-      if (session.elapsedMs < SONG_DURATION_MS && state?.track_window?.current_track?.uri === currentTrack(session).uri &&
-          Number.isFinite(state.position) && state.position >= 0) {
-        session = { ...session, elapsedMs: Math.min(SONG_DURATION_MS, state.position) };
+    pausing = (async () => {
+      try {
+        // Settle pending commands before pausing, so a playlist change cannot restart old audio.
+        if (pendingPreparation) await pendingPreparation;
+        if (pendingPlay) await pendingPlay;
+        if (disposed || expectedEpoch !== epoch) return;
+        await transport.pause();
+        if (disposed || expectedEpoch !== epoch) return;
+        const state = await transport.getState();
+        if (disposed || expectedEpoch !== epoch) return;
+        if (session.elapsedMs < SONG_DURATION_MS && state?.track_window?.current_track?.uri === currentTrack(session).uri &&
+            Number.isFinite(state.position) && state.position >= 0) {
+          session = { ...session, elapsedMs: Math.min(SONG_DURATION_MS, state.position) };
+        }
+        phase = 'paused';
+        emit();
+      } catch (error) {
+        if (!disposed && expectedEpoch === epoch) fail(error);
       }
-      phase = 'paused';
-      emit();
-    } catch (error) {
-      if (!disposed && expectedEpoch === epoch) fail(error);
+    })();
+    return pausing.finally(() => { pausing = null; });
+  }
+
+  async function clearSession() {
+    if (disposed) throw new Error('Reconnect the Spotify player before changing playlists.');
+    await pause();
+    if (disposed || phase === 'error') {
+      throw new Error('Spotify could not stop the current hour. Reconnect the player before changing playlists.');
     }
+    epoch += 1;
+    freeze();
+    cue.stop();
+    session = null;
+    phase = 'idle';
+    emit();
   }
 
   function dispose() {
     if (disposed) return;
     epoch += 1;
     freeze();
-    bell.stop();
+    cue.stop();
     transport.disconnect();
     disposed = true;
   }
 
-  return { getSnapshot, start, pause, handleState, fail, dispose };
+  return { getSnapshot, start, pause, clearSession, handleState, fail, dispose };
 }
 
-export function createBell() {
+export function createCanOpeningSound() {
   let context;
-  let nodes = [];
-  let finishRing;
+  let buffer;
+  let loading;
+  let loadController;
+  let playing;
+  let disposed = false;
 
   function stop() {
-    for (const { oscillator } of nodes) oscillator.stop();
-    finishRing?.();
+    if (!playing) return;
+    const current = playing;
+    current.source.stop();
+    current.finish();
+  }
+
+  function loadSound() {
+    if (buffer) return Promise.resolve();
+    if (loading) return loading;
+    loadController = new AbortController();
+    const timeout = setTimeout(() => loadController.abort(), 15_000);
+    loading = (async () => {
+      try {
+        const response = await fetch('/sounds/can-opening.mp3', { signal: loadController.signal });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        buffer = await context.decodeAudioData(await response.arrayBuffer());
+      } catch (error) {
+        throw new Error(`Could not load the can-opening sound. Check your connection, reconnect the player, and click Resume to retry. ${error.message}`);
+      } finally {
+        clearTimeout(timeout);
+        loading = null;
+      }
+    })();
+    return loading;
   }
 
   async function activate() {
+    if (disposed) throw new Error('Reconnect the player to enable the can-opening sound.');
     const AudioContext = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContext) throw new Error('This browser cannot play the bell. Please use a browser with Web Audio support.');
+    if (!AudioContext) throw new Error('This browser cannot play the can-opening sound. Please use a browser with Web Audio support.');
     if (!context || context.state === 'closed') context = new AudioContext();
-    await context.resume();
-    if (context.state !== 'running') throw new Error('Bell audio is blocked. Allow audio in this browser and click Resume.');
+    await Promise.all([context.resume(), loadSound()]);
+    if (context.state !== 'running') throw new Error('Can-opening audio is blocked. Allow audio in this browser and click Resume.');
   }
 
-  function ring() {
-    if (context?.state !== 'running') {
-      return Promise.reject(new Error('Bell audio was suspended. Click Resume to enable audio again.'));
+  function play() {
+    if (disposed || context?.state !== 'running' || !buffer) {
+      return Promise.reject(new Error('Can-opening audio was suspended. Click Resume to enable audio again.'));
     }
     stop();
     return new Promise(resolve => {
-      const start = context.currentTime;
-      const ringNodes = [];
+      const source = context.createBufferSource();
+      source.buffer = buffer;
       let ended = false;
       const finish = () => {
         if (ended) return;
         ended = true;
-        for (const { oscillator, gain } of ringNodes) {
-          oscillator.disconnect();
-          gain.disconnect();
-        }
-        if (finishRing === finish) {
-          nodes = [];
-          finishRing = null;
-        }
+        source.disconnect();
+        if (playing?.source === source) playing = null;
         resolve();
       };
-      finishRing = finish;
-      nodes = ringNodes;
-      for (const [frequency, volume] of [[880, 0.18], [1760, 0.07], [2640, 0.025]]) {
-        const oscillator = context.createOscillator();
-        const gain = context.createGain();
-        oscillator.frequency.value = frequency;
-        gain.gain.setValueAtTime(0, start);
-        gain.gain.linearRampToValueAtTime(volume, start + 0.008);
-        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.6);
-        oscillator.connect(gain);
-        gain.connect(context.destination);
-        nodes.push({ oscillator, gain });
-        oscillator.start(start);
-        oscillator.stop(start + 0.65);
-      }
-      nodes.at(-1).oscillator.onended = finish;
+      playing = { source, finish };
+      source.onended = finish;
+      source.connect(context.destination);
+      source.start();
     });
   }
 
   async function dispose() {
+    disposed = true;
+    loadController?.abort();
     stop();
     if (context && context.state !== 'closed') await context.close();
   }
 
-  return { activate, ring, stop, dispose };
+  return { activate, play, stop, dispose };
 }

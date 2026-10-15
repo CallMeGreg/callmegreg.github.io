@@ -6,7 +6,7 @@ import {
   saveState, SONG_DURATION_MS, SONG_LIMIT, trackUrl,
 } from './myHourSession.mjs';
 import { createSpotifyClient, loadSpotifySdk } from './myHourSpotify.mjs';
-import { createBell, createHourPlayback } from './myHourPlayback.mjs';
+import { createCanOpeningSound, createHourPlayback } from './myHourPlayback.mjs';
 import './MyHour.css';
 
 const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID?.trim() || '';
@@ -30,6 +30,7 @@ export default function MyHour() {
   const [playback, setPlayback] = useState(() => initialPlayback(restored.state.session));
   const [error, setError] = useState('');
   const [profile, setProfile] = useState(null);
+  const [failedAvatarUrl, setFailedAvatarUrl] = useState('');
   const [authBusy, setAuthBusy] = useState(true);
   const [authAttempt, setAuthAttempt] = useState(0);
   const [playerStatus, setPlayerStatus] = useState('disconnected');
@@ -42,6 +43,7 @@ export default function MyHour() {
   const [tracksBusy, setTracksBusy] = useState(false);
   const [tracksError, setTracksError] = useState('');
   const [tracksAttempt, setTracksAttempt] = useState(0);
+  const [changingPlaylist, setChangingPlaylist] = useState(false);
   const [resetting, setResetting] = useState(false);
   const controllerRef = useRef(null);
   const leaveDialogRef = useRef(null);
@@ -152,7 +154,7 @@ export default function MyHour() {
     let deviceId;
     let controller;
     let failed = false;
-    const bell = createBell();
+    const cue = createCanOpeningSound();
     setPlayerStatus('connecting');
 
     function reportError(playerError) {
@@ -196,7 +198,7 @@ export default function MyHour() {
         if (!controller) {
           controller = createHourPlayback({
             initialSession: savedRef.current.session,
-            bell,
+            cue,
             transport: {
               activate: () => player.activateElement(),
               prepare: () => spotify.preparePlayback(deviceId),
@@ -261,7 +263,7 @@ export default function MyHour() {
       } else {
         player?.disconnect();
       }
-      void bell.dispose().catch(bellError => console.warn('Could not close My Hour bell audio:', bellError));
+      void cue.dispose().catch(audioError => console.warn('Could not close My Hour can-opening audio:', audioError));
     };
   }, [spotify, profile, playerAttempt, updateSaved]);
 
@@ -351,6 +353,20 @@ export default function MyHour() {
     }
   }
 
+  async function changePlaylist(playlistId) {
+    setChangingPlaylist(true);
+    setError('');
+    try {
+      await controllerRef.current?.clearSession();
+      updateSaved({ playlistId, session: null });
+      setPlayback(initialPlayback(null));
+    } catch (playlistError) {
+      setError(playlistError.message);
+    } finally {
+      setChangingPlaylist(false);
+    }
+  }
+
   async function resetState() {
     setResetting(true);
     await controllerRef.current?.pause();
@@ -384,25 +400,26 @@ export default function MyHour() {
   const time = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
   const busy = ['starting', 'transition', 'pausing'].includes(playback.phase);
   const readyToStart = playerStatus === 'ready' && !tracksBusy && selection?.playlistId === saved.playlistId &&
-    selection.tracks.length > 0 && !resetting;
+    selection.tracks.length > 0 && !resetting && !changingPlaylist;
   const limit = session ? Math.min(SONG_LIMIT, session.tracks.length) : SONG_LIMIT;
   const statusText = {
-    idle: 'Make a little time for music.',
     starting: 'Waiting for Spotify...',
-    playing: 'One song. One minute.',
-    transition: 'Ding! Minute complete.',
+    transition: 'Minute complete...',
     pausing: 'Pausing Spotify...',
-    paused: 'Paused',
-    error: 'Playback stopped.',
-    finished: session?.songNumber >= SONG_LIMIT ? 'Your hour is complete!' : 'Your playlist is complete!',
   }[playback.phase];
+  const accountName = profile?.display_name || profile?.id;
+  const avatarUrl = profile?.images?.find(image => image.url)?.url;
+  const accountStatus = !profile ? (authBusy ? 'Connecting to Spotify...' : 'Connect your Spotify')
+    : playerStatus === 'ready' ? `Connected as ${accountName}`
+      : playerStatus === 'error' ? `Disconnected from Spotify (${accountName})`
+        : `Connecting as ${accountName}...`;
 
   return (
     <main className="my-hour">
       <header className="mh-topbar">
         <Link to="/" className="mh-quiet-button">Home</Link>
         <h1 className="mh-wordmark">MY HOUR</h1>
-        <button type="button" className="mh-quiet-button" onClick={resetState} disabled={resetting}>
+        <button type="button" className="mh-quiet-button" onClick={resetState} disabled={resetting || changingPlaylist}>
           {resetting ? 'Resetting...' : 'Reset'}
         </button>
       </header>
@@ -413,11 +430,7 @@ export default function MyHour() {
 
         <div className="mh-layout">
           <section className="mh-player mh-panel" aria-label="My Hour player">
-            <div className="mh-player-heading">
-              <span className={`mh-status-dot ${playback.phase === 'playing' ? 'is-playing' : ''}`} />
-              <span role="status">{statusText}</span>
-              {session?.endless && <span className="mh-mode-tag">ENDLESS</span>}
-            </div>
+            {session?.endless && <span className="mh-mode-tag">ENDLESS</span>}
             <div className="mh-clock" style={{ '--mh-progress': `${(1 - seconds / 60) * 360}deg` }}>
               <div className="mh-clock-inner">
                 <span className="mh-small-label">SONG</span>
@@ -454,9 +467,9 @@ export default function MyHour() {
             <div className="mh-play-controls">
               {inProgress ? (
                 playback.phase === 'playing' ? (
-                  <button type="button" className="mh-primary" onClick={() => void controllerRef.current?.pause()}>Pause</button>
+                  <button type="button" className="mh-primary" onClick={() => void controllerRef.current?.pause()} disabled={resetting || changingPlaylist}>Pause</button>
                 ) : (
-                  <button type="button" className="mh-primary" onClick={resumeSession} disabled={busy || playerStatus !== 'ready' || resetting}>
+                  <button type="button" className="mh-primary" onClick={resumeSession} disabled={busy || playerStatus !== 'ready' || resetting || changingPlaylist}>
                     {busy ? statusText : 'Resume'}
                   </button>
                 )
@@ -466,38 +479,32 @@ export default function MyHour() {
                 </button>
               )}
             </div>
-            {inProgress && (
-              <p className="mh-saved-note">
-                Playing from <a href={`https://open.spotify.com/playlist/${session.playlist.id}`} target="_blank" rel="noopener noreferrer">{session.playlist.name}</a>.
-                {' '}Refresh or leave and your session returns paused.
-              </p>
-            )}
           </section>
 
           <aside className="mh-settings mh-panel" aria-label="Session setup">
-            <p className="mh-eyebrow">SET THE MOOD</p>
-            <h2>A playlist, please.</h2>
             <div className="mh-account">
-              <span className={`mh-account-icon ${profile ? 'is-connected' : ''}`} aria-hidden="true">S</span>
+              {avatarUrl && avatarUrl !== failedAvatarUrl ? (
+                <img className="mh-account-icon" src={avatarUrl} alt={`${accountName}'s profile`}
+                  width="38" height="38" onError={() => {
+                    console.warn('Could not load the Spotify profile picture.');
+                    setFailedAvatarUrl(avatarUrl);
+                  }} />
+              ) : (
+                <span className="mh-account-icon" aria-hidden="true">{profile ? accountName.slice(0, 1).toUpperCase() : '?'}</span>
+              )}
               <div>
-                <strong>{profile ? `Connected as ${profile.display_name || profile.id}` : 'Connect your Spotify'}</strong>
-                <p>Spotify Premium required</p>
+                <strong role="status">{accountStatus}</strong>
               </div>
             </div>
             {!profile ? (
               <button type="button" className="mh-spotify-button" onClick={connectSpotify} disabled={!CONFIGURED || authBusy || resetting}>
                 {authBusy ? 'Connecting...' : 'Connect to Spotify'}
               </button>
-            ) : (
+            ) : playerStatus === 'error' && (
               <div className="mh-connection-status">
-                <span role="status">
-                  {playerStatus === 'ready' ? 'Browser player ready' : playerStatus === 'connecting' ? 'Connecting browser player...' : 'Browser player disconnected'}
-                </span>
-                {playerStatus === 'error' && (
-                  <button type="button" className="mh-text-button" onClick={() => { setError(''); setPlayerAttempt(attempt => attempt + 1); }}>
-                    Reconnect player
-                  </button>
-                )}
+                <button type="button" className="mh-text-button" onClick={() => { setError(''); setPlayerAttempt(attempt => attempt + 1); }}>
+                  Reconnect player
+                </button>
               </div>
             )}
 
@@ -511,8 +518,8 @@ export default function MyHour() {
             )}
 
             <label className="mh-field-label" htmlFor="mh-playlist">YOUR PLAYLIST</label>
-            <select id="mh-playlist" value={saved.playlistId} disabled={!profile || playlistsBusy || inProgress || resetting}
-              onChange={event => updateSaved({ playlistId: event.target.value })}>
+            <select id="mh-playlist" value={saved.playlistId} disabled={!profile || playlistsBusy || busy || changingPlaylist || resetting}
+              onChange={event => void changePlaylist(event.target.value)}>
               <option value="">{playlistsBusy ? 'Loading playlists...' : 'Choose a playlist'}</option>
               {saved.playlistId && !playlists.some(playlist => playlist.id === saved.playlistId) && (
                 <option value={saved.playlistId}>{session?.playlist.name || 'Saved playlist'}</option>
@@ -520,11 +527,12 @@ export default function MyHour() {
               {playlists.map(playlist => <option key={playlist.id} value={playlist.id}>{playlist.name}</option>)}
             </select>
             <p className="mh-field-hint">Playlists you own or collaborate on, including private playlists.</p>
+            {inProgress && <p className="mh-field-hint">Changing playlists stops this hour and resets to song 1.</p>}
             {profile && !playlistsBusy && !playlists.length && !playlistsError && (
               <p className="mh-field-hint">No owned or collaborative playlists found. Create one in Spotify, then reload playlists.</p>
             )}
-            {profile && !inProgress && (
-              <button type="button" className="mh-text-button" disabled={playlistsBusy}
+            {profile && (
+              <button type="button" className="mh-text-button" disabled={playlistsBusy || changingPlaylist || resetting}
                 onClick={() => { setPlaylistAttempt(attempt => attempt + 1); setTracksAttempt(attempt => attempt + 1); }}>
                 Reload playlists
               </button>
@@ -546,16 +554,36 @@ export default function MyHour() {
                 {!selection.tracks.length && <span>Choose a playlist with playable songs at least 60 seconds long.</span>}
               </div>
             )}
+            {selection?.entries.length > 0 && !tracksBusy && (
+              <details className="mh-playlist-songs" key={selection.playlistId}>
+                <summary>View playlist songs ({selection.entries.length})</summary>
+                <ol role="list" tabIndex="0" aria-label="Playlist songs">
+                  {selection.entries.map((song, index) => (
+                    <li key={`${index}-${song.uri}`}>
+                      <span className="mh-song-position" aria-hidden="true">{index + 1}</span>
+                      <div>
+                        {song.uri ? (
+                          <a href={trackUrl(song)} target="_blank" rel="noopener noreferrer" title={song.name}>{song.name}</a>
+                        ) : <strong title={song.name}>{song.name}</strong>}
+                        <small title={[song.artists, song.skipped && `Skipped: ${song.skipped}`].filter(Boolean).join(' - ')}>
+                          {[song.artists, song.skipped && `Skipped: ${song.skipped}`].filter(Boolean).join(' - ')}
+                        </small>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </details>
+            )}
 
             <div className="mh-options">
               <label className="mh-toggle-row">
                 <span><strong>Shuffle</strong><small>A fresh order, no repeats within a cycle.</small></span>
-                <input type="checkbox" checked={saved.shuffle} disabled={inProgress || resetting}
+                <input type="checkbox" checked={saved.shuffle} disabled={inProgress || resetting || changingPlaylist}
                   onChange={event => updateSaved({ shuffle: event.target.checked })} />
               </label>
               <label className="mh-toggle-row">
                 <span><strong>Endless mode</strong><small>Keep going past 60. Loop when the playlist ends.</small></span>
-                <input type="checkbox" checked={saved.endless} disabled={inProgress || resetting}
+                <input type="checkbox" checked={saved.endless} disabled={inProgress || resetting || changingPlaylist}
                   onChange={event => updateSaved({ endless: event.target.checked })} />
               </label>
             </div>
