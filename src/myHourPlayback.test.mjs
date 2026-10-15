@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createHourPlayback, createBell } from './myHourPlayback.mjs';
+import { createHourPlayback, createCanOpeningSound } from './myHourPlayback.mjs';
 import { createSession, SONG_DURATION_MS } from './myHourSession.mjs';
 
 const flush = async () => {
@@ -58,15 +58,15 @@ function fixture(t, options = {}) {
     disconnect: () => { disconnected = true; playingSince = null; events.push(['disconnect']); },
     ...options.transport,
   };
-  const bell = {
+  const cue = {
     activate: async () => {},
-    ring: async () => { events.push(['bell']); },
+    play: async () => { events.push(['cue']); },
     stop: () => {},
-    ...options.bell,
+    ...options.cue,
   };
   const player = createHourPlayback({
     transport,
-    bell,
+    cue,
     initialSession: options.initialSession,
     now: Date.now,
     onChange: snapshot => events.push(['snapshot', snapshot]),
@@ -81,7 +81,7 @@ function fixture(t, options = {}) {
   };
 }
 
-test('exact threshold: no pause at 59,999 ms; pause, ding, then song 2 at 60,000 ms', async t => {
+test('exact threshold: no pause at 59,999 ms; pause, can opening, then song 2 at 60,000 ms', async t => {
   const f = fixture(t);
   await f.player.start(makeSession());
   assert.equal(f.player.getSnapshot().phase, 'playing');
@@ -89,8 +89,8 @@ test('exact threshold: no pause at 59,999 ms; pause, ding, then song 2 at 60,000
   assert.equal(f.events.filter(event => event[0] === 'pause').length, 0);
   assert.equal(f.player.getSnapshot().session.songNumber, 1);
   await f.advance(1);
-  assert.deepEqual(f.events.filter(event => ['play', 'pause', 'bell'].includes(event[0])).map(event => event[0]),
-    ['play', 'pause', 'bell', 'play']);
+  assert.deepEqual(f.events.filter(event => ['play', 'pause', 'cue'].includes(event[0])).map(event => event[0]),
+    ['play', 'pause', 'cue', 'play']);
   assert.equal(f.player.getSnapshot().session.songNumber, 2);
   assert.equal(f.player.getSnapshot().session.elapsedMs, 0);
   assert.equal(f.errors.length, 0);
@@ -178,9 +178,9 @@ test('endless playback keeps playing past 60 and never fires completion confetti
   assert.equal(f.events.filter(event => event[0] === 'play').length, 66);
 });
 
-test('the next song waits for the bell, and duplicate boundary events cannot advance twice', async t => {
+test('the next song waits for the can opening, and duplicate boundary events cannot advance twice', async t => {
   const ringing = deferred();
-  const f = fixture(t, { bell: { ring: () => ringing.promise } });
+  const f = fixture(t, { cue: { play: () => ringing.promise } });
   await f.player.start(makeSession());
   await f.advance(SONG_DURATION_MS);
   assert.equal(f.player.getSnapshot().phase, 'transition');
@@ -195,21 +195,21 @@ test('the next song waits for the bell, and duplicate boundary events cannot adv
   assert.equal(f.player.getSnapshot().session.songNumber, 2);
 });
 
-test('failed pause stops the player without a ding, completion, or advancing the counter', async t => {
+test('failed pause stops the player without a cue, completion, or advancing the counter', async t => {
   const f = fixture(t, { transport: { pause: async () => { throw new Error('Pause failed'); } } });
   await f.player.start(makeSession());
   await f.advance(SONG_DURATION_MS);
   assert.equal(f.player.getSnapshot().phase, 'error');
   assert.equal(f.player.getSnapshot().session.songNumber, 1);
   assert.equal(f.isDisconnected(), true);
-  assert.equal(f.events.filter(event => event[0] === 'bell').length, 0);
+  assert.equal(f.events.filter(event => event[0] === 'cue').length, 0);
   assert.equal(f.completions.length, 0);
   assert.match(f.errors[0].message, /Pause failed/);
 });
 
-test('unmount/reset during a bell cannot start the next song', async t => {
+test('unmount/reset during a can opening cannot start the next song', async t => {
   const ringing = deferred();
-  const f = fixture(t, { bell: { ring: () => ringing.promise } });
+  const f = fixture(t, { cue: { play: () => ringing.promise } });
   await f.player.start(makeSession());
   await f.advance(SONG_DURATION_MS);
   f.player.dispose();
@@ -285,8 +285,8 @@ test('restoring a completed minute reconnects the device before advancing, witho
   assert.equal(f.events.find(event => event[0] === 'play')[1], 'spotify:track:track1');
 });
 
-test('bell failure cannot continue silently or start overlapping Spotify audio', async t => {
-  const f = fixture(t, { bell: { ring: async () => { throw new Error('Audio suspended'); } } });
+test('can-opening failure cannot continue silently or start overlapping Spotify audio', async t => {
+  const f = fixture(t, { cue: { play: async () => { throw new Error('Audio suspended'); } } });
   await f.player.start(makeSession());
   await f.advance(SONG_DURATION_MS);
   assert.equal(f.player.getSnapshot().phase, 'error');
@@ -310,22 +310,115 @@ test('a track ending naturally at exactly one minute completes its turn', async 
   assert.equal(f.completions.length, 1);
 });
 
-test('a cancelled bell cannot terminate the next bell through a stale audio event', async t => {
-  const oscillators = [];
+test('changing a playing playlist stops the old hour and waits for a new Start', async t => {
+  const f = fixture(t);
+  await f.player.start(makeSession());
+  await f.advance(22_000);
+  await f.player.clearSession();
+  assert.deepEqual(f.player.getSnapshot(), { phase: 'idle', session: null });
+  assert.equal(f.isDisconnected(), false);
+  await f.advance(120_000);
+  assert.equal(f.events.filter(event => event[0] === 'play').length, 1);
+  assert.equal(f.events.filter(event => event[0] === 'cue').length, 0);
+
+  const next = makeSession(5);
+  next.playlist = { id: 'new', name: 'New playlist' };
+  next.tracks[0].uri = 'spotify:track:new';
+  await f.player.start(next);
+  assert.equal(f.player.getSnapshot().phase, 'playing');
+  assert.equal(f.player.getSnapshot().session.songNumber, 1);
+  assert.equal(f.player.getSnapshot().session.elapsedMs, 0);
+  assert.deepEqual(f.events.filter(event => event[0] === 'play').at(-1), ['play', 'spotify:track:new', 0]);
+});
+
+for (const phase of ['paused', 'finished']) {
+  test(`a ${phase} hour can be cleared without starting audio`, async t => {
+    const saved = makeSession(1);
+    if (phase === 'finished') {
+      saved.completed = true;
+      saved.elapsedMs = SONG_DURATION_MS;
+    }
+    const f = fixture(t, { initialSession: saved });
+    assert.equal(f.player.getSnapshot().phase, phase);
+    await f.player.clearSession();
+    assert.deepEqual(f.player.getSnapshot(), { phase: 'idle', session: null });
+    assert.equal(f.events.filter(event => event[0] === 'play').length, 0);
+  });
+}
+
+test('clearing a playlist waits for an already pending pause', async t => {
+  const request = deferred();
+  const f = fixture(t, { transport: { pause: () => request.promise } });
+  await f.player.start(makeSession());
+  const pausing = f.player.pause();
+  const clearing = f.player.clearSession();
+  await flush();
+  assert.equal(f.player.getSnapshot().phase, 'pausing');
+  assert.ok(f.player.getSnapshot().session);
+  request.resolve();
+  await Promise.all([pausing, clearing]);
+  assert.deepEqual(f.player.getSnapshot(), { phase: 'idle', session: null });
+});
+
+for (const command of ['prepare', 'play']) {
+  test(`clearing a playlist settles a late ${command} before pausing and discarding progress`, async t => {
+    const request = deferred();
+    const f = fixture(t, { transport: { [command]: () => request.promise } });
+    const starting = f.player.start(makeSession());
+    await flush();
+    const clearing = f.player.clearSession();
+    await flush();
+    assert.equal(f.events.filter(event => event[0] === 'pause').length, 0);
+    request.resolve();
+    await Promise.all([starting, clearing]);
+    assert.equal(f.events.filter(event => event[0] === 'pause').length, 1);
+    assert.deepEqual(f.player.getSnapshot(), { phase: 'idle', session: null });
+    await f.advance(120_000);
+    assert.deepEqual(f.player.getSnapshot(), { phase: 'idle', session: null });
+  });
+}
+
+test('clearing a playlist cancels its cue without advancing the old hour', async t => {
+  const sound = deferred();
+  const f = fixture(t, { cue: { play: () => sound.promise } });
+  await f.player.start(makeSession());
+  await f.advance(SONG_DURATION_MS);
+  await f.player.clearSession();
+  sound.resolve();
+  await flush();
+  assert.deepEqual(f.player.getSnapshot(), { phase: 'idle', session: null });
+  assert.equal(f.events.filter(event => event[0] === 'play').length, 1);
+  assert.equal(f.completions.length, 0);
+});
+
+test('a failed playlist change preserves progress and reports the failure', async t => {
+  const f = fixture(t, { transport: { pause: async () => { throw new Error('Pause failed'); } } });
+  await f.player.start(makeSession());
+  await f.advance(20_000);
+  await assert.rejects(f.player.clearSession(), /could not stop the current hour/);
+  assert.equal(f.player.getSnapshot().session.elapsedMs, 20_000);
+  assert.equal(f.player.getSnapshot().phase, 'error');
+  assert.equal(f.isDisconnected(), true);
+  assert.match(f.errors[0].message, /Pause failed/);
+});
+
+function audioFixture(t) {
+  const sources = [];
+  const buffer = { duration: 1.6 };
   const context = {
     state: 'running', currentTime: 0, destination: {},
     resume: async () => {},
-    close: async () => {},
-    createOscillator: () => {
-      const node = { frequency: {}, connect() {}, disconnect() {}, start() {}, stop() {}, onended: null };
-      oscillators.push(node);
+    close: async () => { context.state = 'closed'; },
+    decodeAudioData: async () => buffer,
+    createBufferSource: () => {
+      const node = {
+        connect: t.mock.fn(), disconnect: t.mock.fn(), start: t.mock.fn(), stop: t.mock.fn(), onended: null,
+      };
+      sources.push(node);
       return node;
     },
-    createGain: () => ({
-      gain: { setValueAtTime() {}, linearRampToValueAtTime() {}, exponentialRampToValueAtTime() {} },
-      connect() {}, disconnect() {},
-    }),
   };
+  const fetchSound = t.mock.method(globalThis, 'fetch', async () => new Response(new ArrayBuffer(8)));
   const previousWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
   Object.defineProperty(globalThis, 'window', {
     configurable: true,
@@ -335,18 +428,68 @@ test('a cancelled bell cannot terminate the next bell through a stale audio even
     if (previousWindow) Object.defineProperty(globalThis, 'window', previousWindow);
     else delete globalThis.window;
   });
-  const bell = createBell();
-  await bell.activate();
-  const first = bell.ring();
-  bell.stop();
-  await first;
+  const cue = createCanOpeningSound();
+  t.after(() => cue.dispose());
+  return { cue, sources, buffer, context, fetchSound };
+}
+
+test('can-opening audio loads once and plays the full recording at unity gain', async t => {
+  const { cue, sources, buffer, context, fetchSound } = audioFixture(t);
+  await cue.activate();
+  await cue.activate();
+  assert.equal(fetchSound.mock.callCount(), 1);
+  assert.equal(fetchSound.mock.calls[0].arguments[0], '/sounds/can-opening.mp3');
   let ended = false;
-  const second = bell.ring().then(() => { ended = true; });
-  oscillators[2].onended();
+  const playing = cue.play().then(() => { ended = true; });
+  assert.equal(sources[0].buffer, buffer);
+  assert.deepEqual(sources[0].connect.mock.calls[0].arguments, [context.destination]);
+  assert.deepEqual(sources[0].start.mock.calls[0].arguments, []);
   await flush();
   assert.equal(ended, false);
-  oscillators[5].onended();
+  sources[0].onended();
+  await playing;
+  assert.equal(sources[0].disconnect.mock.callCount(), 1);
+});
+
+test('a cancelled can opening cannot terminate the next cue through a stale audio event', async t => {
+  const { cue, sources } = audioFixture(t);
+  await cue.activate();
+  const first = cue.play();
+  cue.stop();
+  await first;
+  let ended = false;
+  const second = cue.play().then(() => { ended = true; });
+  sources[0].onended();
+  await flush();
+  assert.equal(ended, false);
+  sources[1].onended();
   await second;
   assert.equal(ended, true);
-  await bell.dispose();
+  assert.equal(sources[0].stop.mock.callCount(), 1);
+});
+
+test('unavailable or invalid can audio fails explicitly and can be retried', async t => {
+  const { cue, fetchSound, context } = audioFixture(t);
+  fetchSound.mock.mockImplementationOnce(async () => new Response('', { status: 404 }));
+  await assert.rejects(cue.activate(), /Could not load the can-opening sound.*HTTP 404/);
+  const decode = t.mock.method(context, 'decodeAudioData', async () => { throw new Error('Invalid audio'); });
+  await assert.rejects(cue.activate(), /Could not load the can-opening sound.*Invalid audio/);
+  decode.mock.restore();
+  await cue.activate();
+  assert.equal(fetchSound.mock.callCount(), 3);
+});
+
+test('suspended can audio cannot be skipped silently and disposal stops an active cue', async t => {
+  const { cue, context, sources } = audioFixture(t);
+  await cue.activate();
+  context.state = 'suspended';
+  await assert.rejects(cue.play(), /audio was suspended/);
+  await assert.rejects(cue.activate(), /audio is blocked/);
+  context.state = 'running';
+  const playing = cue.play();
+  await cue.dispose();
+  await playing;
+  assert.equal(context.state, 'closed');
+  assert.equal(sources[0].stop.mock.callCount(), 1);
+  await assert.rejects(cue.activate(), /Reconnect the player/);
 });

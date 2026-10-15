@@ -13,7 +13,7 @@ A fun collection of vibe-coded projects built with React and Vite :robot:
 | [Jeopardy!](https://callmegreg.github.io/jeopardy) | Host a custom trivia game with CSV questions, team scores, multiple rounds, and Final Jeopardy. |
 | [Wubdle](https://callmegreg.github.io/wubdle) | Guess an EDM artist from clues, with daily challenges and shareable seeded puzzles. |
 | [DropKit](https://callmegreg.github.io/dropkit) | Build DJ sets by matching tracks to a subgenre, musical key, and BPM. |
-| [My Hour](https://callmegreg.github.io/my-hour) | Play a Spotify playlist in one-minute turns with a bell, shuffle, and optional endless mode. |
+| [My Hour](https://callmegreg.github.io/my-hour) | Play a Spotify playlist in one-minute turns with a can-opening sound, shuffle, and optional endless mode. |
 
 ## Local Development
 
@@ -27,6 +27,17 @@ Open `http://127.0.0.1:5173/`. Run `npm test` for My Hour's checks and `npm run 
 My Hour treats Spotify playback commands as status-only acknowledgements: successful responses
 (including HTTP 200 and 204) do not require JSON. Token, account, and playlist responses still
 require JSON, and the minute timer starts only after the browser player confirms playback.
+
+My Hour shows your Spotify profile picture and connection status in the account row. Expand
+the selected playlist to browse every entry in a scrollable list capped at ten visible songs;
+entries excluded from playback are labeled. Changing playlists stops the current hour,
+clears its progress, and waits for **Start My Hour** to begin the new playlist at song 1.
+Refreshing still restores an unfinished hour paused.
+
+The full-volume transition cue is a recorded can opening, played only while Spotify is paused.
+`public/sounds/can-opening.mp3` is the high-quality MP3 preview of
+[“Can Opening fizzy drink soda pop high quality.wav” by CADSoundDesignEmporium](https://freesound.org/people/CADSoundDesignEmporium/sounds/513823/),
+used under [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
 
 ## Build & Deploy
 
