@@ -22,7 +22,7 @@ export const repositories = [
   },
   {
     name: 'gh-language',
-    description: 'Understand the languages your enterprise use.',
+    description: 'Understand the languages your enterprise uses.',
     detail: 'Language insights across GitHub enterprises and organizations.',
     url: 'https://github.com/CallMeGreg/gh-language',
     language: 'Go',
