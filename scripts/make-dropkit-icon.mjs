@@ -1,4 +1,4 @@
-// Generates public/images/dropkit.svg — DropKit's homepage icon.
+// Generates public/images/dropkit.svg — DropKit's original icon, before the PNG cover.
 //
 // Concept: a harmonic mixing wheel (the Camelot-style color wheel DJs use to
 // match keys) with a glowing vinyl record at the hub. This is deliberately

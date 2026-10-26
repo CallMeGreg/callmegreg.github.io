@@ -2,7 +2,28 @@
 
 A fun collection of vibe-coded projects built with React and Vite :robot:
 
-## Applets
+## Landing page
+
+The home page uses the light Studio design with a profile introduction, pinned
+repositories, published work, and an applet grid. Reduced-motion preferences
+disable entrance and reveal animations. The landing page has no saved UI state;
+the former concept URLs and preferences no longer select alternate themes.
+Playground separates eight web apps from two iOS apps. All web apps remain available
+at their original URLs with their own saved state; the mobile cards open the App Store.
+
+Profile, pinned repositories, contribution links, and blog links are a public
+snapshot verified on October 26, 2026 in `src/landingContent.mjs`. Update that file
+to change featured content. Sources are the
+[GitHub profile](https://github.com/CallMeGreg),
+[profile README](https://github.com/CallMeGreg/CallMeGreg), and
+[GitHub Blog author page](https://github.blog/author/callmegreg/).
+The portrait is stored locally in `public/images/greg-mohler.png`;
+the page does not require API credentials or live profile requests.
+`public/images/github-mark.svg` is the unmodified black Invertocat from
+[GitHub's official logo package](https://brand.github.com/GitHub_Logos.zip),
+used according to the [GitHub brand guidelines](https://brand.github.com/foundations/logo).
+
+## Web apps
 
 | Applet | Description |
 | --- | --- |
@@ -14,6 +35,14 @@ A fun collection of vibe-coded projects built with React and Vite :robot:
 | [Wubdle](https://callmegreg.github.io/wubdle) | Guess an EDM artist from clues, with daily challenges and shareable seeded puzzles. |
 | [DropKit](https://callmegreg.github.io/dropkit) | Build DJ sets by matching tracks to a subgenre, musical key, and BPM. |
 | [My Hour](https://callmegreg.github.io/my-hour) | Play a Spotify playlist in one-minute turns with a can-opening sound, shuffle, and optional endless mode. |
+
+## iOS apps
+
+[Trading Up](https://apps.apple.com/us/app/trading-up-tcg/id6792863289) and
+[XP Waste](https://apps.apple.com/us/app/xp-waste/id6798515534) appear in a separate
+iOS section within Playground. Their names, descriptions, and App Store links are maintained in
+`src/landingContent.mjs`. The official App Store icons are stored locally as
+`public/images/trading-up.jpg` and `public/images/xp-waste.jpg`.
 
 ## Local Development
 
