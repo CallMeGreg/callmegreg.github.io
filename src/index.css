@@ -1,5 +1,21 @@
+:root {
+  color-scheme: dark;
+  --site-bg: light-dark(#faf9f6, #101714);
+  --site-surface: light-dark(#ffffff, #1b2420);
+  --site-raised: light-dark(#edf0ed, #2b3530);
+  --site-text: light-dark(#24272a, #e6ede7);
+  --site-muted: light-dark(#59635c, #a4b2a7);
+  --site-border: light-dark(#d6ddd7, #3b4940);
+  --site-accent: light-dark(#47705a, #9ec9ab);
+  --site-link: light-dark(#206582, #7ec8e3);
+}
+
+:root[data-theme='light'] { color-scheme: light; }
+
 body {
   margin: 0;
+  background: var(--site-bg);
+  color: var(--site-text);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;

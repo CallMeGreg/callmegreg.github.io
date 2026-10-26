@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { applets, architecture, articles, mobileApps, profile, repositories } from './landingContent.mjs';
+import ThemeToggle from './ThemeToggle';
 import './Home.css';
 
 function Icon({ name = 'arrow', className = '' }) {
@@ -93,7 +94,7 @@ function Repositories() {
           <ExternalLink key={repository.name} className={`lp-repo-card lp-reveal lp-repo-${index}`} href={repository.url}>
             <div className="lp-card-top"><span className="lp-icon-box"><Icon name={repository.icon} /></span><span>{repository.category}</span><Icon name="external" /></div>
             <div className="lp-repo-art" aria-hidden="true">
-              {index === 0 ? <div className="lp-shield-art"><span /><span /><Icon name="shield" /></div> : <div className="lp-language-art"><span>{'>'}_</span><div><i /><i /><i /><i /><i /></div></div>}
+              {index === 0 ? <div className="lp-shield-art"><span /><span /><Icon name="shield" /></div> : <div className="lp-language-art"><div><i /><i /><i /><i /><i /></div></div>}
             </div>
             <h3>{repository.name}</h3>
             <p>{repository.description}</p>
@@ -207,7 +208,10 @@ export default function Home() {
       <header className="lp-header lp-container">
         <span className="lp-wordmark">callmegreg<span className="lp-wordmark-dot">.</span></span>
         <nav className="lp-nav" aria-label="Main navigation"><a href="#work">Work</a><a href="#writing">Writing</a><a href="#playground">Playground</a></nav>
-        <ExternalLink className="lp-header-github" href={profile.url} aria-label="Greg Mohler on GitHub (opens in a new tab)" title="Greg Mohler on GitHub"><Icon name="github" /></ExternalLink>
+        <div className="lp-header-actions">
+          <ThemeToggle />
+          <ExternalLink className="lp-header-github" href={profile.url} aria-label="Greg Mohler on GitHub (opens in a new tab)" title="Greg Mohler on GitHub"><Icon name="github" /></ExternalLink>
+        </div>
       </header>
       <main id="main-content" className="lp-container" tabIndex="-1">
         <Hero />
