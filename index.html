@@ -1,10 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#101714" />
+    <script id="site-theme-init">
+      // Apply the saved preference before styles load to avoid a theme flash.
+      try {
+        document.documentElement.dataset.theme =
+          localStorage.getItem('site.theme') === 'light' ? 'light' : 'dark';
+      } catch (error) {
+        console.warn('Unable to read the saved site theme.', error);
+      }
+    </script>
     <meta name="description" content="Greg Mohler. Solutions architect at GitHub. Security, Copilot, open-source projects, and a playground of things built for fun." />
     <link rel="apple-touch-icon" href="/logo192.png" />
     <link rel="manifest" href="/manifest.json" />

@@ -1,7 +1,7 @@
 :root {
-  --wubdle-cyan: #00e5ff;
-  --wubdle-magenta: #ff00e5;
-  --wubdle-purple: #7c4dff;
+  --wubdle-cyan: light-dark(#007889, #00e5ff);
+  --wubdle-magenta: light-dark(#b5169b, #ff00e5);
+  --wubdle-purple: light-dark(#6941d9, #7c4dff);
   --wubdle-green: #1db954;
   --wubdle-green-glow: rgba(29, 185, 84, 0.55);
   --wubdle-red: #ff2d55;
@@ -10,15 +10,18 @@
 
 body.wubdle-page {
   margin: 0;
-  background: radial-gradient(circle at 20% 0%, #1b0b3a 0%, #0a0a14 45%, #05050a 100%);
+  background: radial-gradient(circle at 20% 0%, light-dark(#e8defa, #1b0b3a) 0%, light-dark(#f5f3fa, #0a0a14) 45%, light-dark(#faf9fc, #05050a) 100%);
   background-attachment: fixed;
 }
 
 .wubdle {
+  --wubdle-text: light-dark(#2c2540, #f3f3fb);
+  --wubdle-muted: light-dark(#625875, #b9b6d6);
+  --wubdle-border: light-dark(#cec5df, rgba(255, 255, 255, 0.16));
   min-height: 100vh;
-  color: #f3f3fb;
+  color: var(--wubdle-text);
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-  padding: 16px 16px 48px;
+  padding: 16px 16px 80px;
   box-sizing: border-box;
 }
 
@@ -81,12 +84,12 @@ body.wubdle-page {
 }
 .wubdle-tagline {
   margin: 10px 0 0;
-  color: #b9b6d6;
+  color: var(--wubdle-muted);
   font-size: 0.95rem;
   letter-spacing: 0.03em;
 }
 
-.wubdle-loading { text-align: center; color: #b9b6d6; }
+.wubdle-loading { text-align: center; color: var(--wubdle-muted); }
 
 .wubdle-main {
   max-width: 880px;
@@ -103,15 +106,15 @@ body.wubdle-page {
   width: fit-content;
   max-width: 100%;
   margin: 0 auto 18px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: light-dark(#ffffffb3, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--wubdle-border);
   border-radius: 16px;
   padding: 14px 18px;
   backdrop-filter: blur(8px);
 }
 
 .wubdle-seed-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.wubdle-seed-label { color: #9b97c0; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; }
+.wubdle-seed-label { color: var(--wubdle-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; }
 .wubdle-seed-value {
   font-family: 'Courier New', monospace;
   font-weight: 700;
@@ -127,18 +130,18 @@ body.wubdle-page {
 .wubdle-seed-play { display: flex; gap: 6px; }
 .wubdle-seed-play input {
   width: 170px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: light-dark(#fff, rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--wubdle-border);
   border-radius: 8px;
   padding: 8px 10px;
-  color: #fff;
+  color: var(--wubdle-text);
   font-size: 0.9rem;
 }
-.wubdle-seed-play input::placeholder { color: #8a87a8; }
+.wubdle-seed-play input::placeholder { color: var(--wubdle-muted); }
 
 .wubdle-btn {
   background: linear-gradient(120deg, var(--wubdle-cyan), var(--wubdle-purple));
-  color: #07070f;
+  color: light-dark(#fff, #07070f);
   font-weight: 700;
   border: none;
   border-radius: 8px;
@@ -150,18 +153,18 @@ body.wubdle-page {
 .wubdle-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0, 229, 255, 0.35); }
 .wubdle-btn.ghost {
   background: transparent;
-  color: #d9d7ef;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: light-dark(#4f425f, #d9d7ef);
+  border: 1px solid var(--wubdle-border);
 }
-.wubdle-btn.ghost:hover { box-shadow: 0 0 0 1px var(--wubdle-magenta); color: #fff; }
+.wubdle-btn.ghost:hover { box-shadow: 0 0 0 1px var(--wubdle-magenta); color: var(--wubdle-text); }
 .wubdle-btn.giveup {
   background: transparent;
-  color: #f3a0a0;
+  color: light-dark(#a33146, #f3a0a0);
   border: 1px solid rgba(255, 90, 120, 0.4);
 }
 .wubdle-btn.giveup:hover {
   box-shadow: 0 0 0 1px rgba(255, 90, 120, 0.7);
-  color: #ffd0d0;
+  color: light-dark(#802236, #ffd0d0);
 }
 .wubdle-btn:disabled,
 .wubdle-btn:disabled:hover {
@@ -173,7 +176,7 @@ body.wubdle-page {
 .wubdle-daily-reset {
   margin: 4px 0 0;
   font-size: 0.85rem;
-  color: #9b98c4;
+  color: var(--wubdle-muted);
 }
 .wubdle-daily-reset code {
   color: var(--wubdle-cyan);
@@ -186,11 +189,11 @@ body.wubdle-page {
 .wubdle-input-wrap > input {
   flex: 1;
   min-width: 0;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: light-dark(#fff, rgba(255, 255, 255, 0.07));
+  border: 1px solid var(--wubdle-border);
   border-radius: 12px;
   padding: 14px 16px;
-  color: #fff;
+  color: var(--wubdle-text);
   font-size: 1.05rem;
 }
 .wubdle-input-wrap > .wubdle-btn { white-space: nowrap; }
@@ -199,7 +202,7 @@ body.wubdle-page {
   border-color: var(--wubdle-cyan);
   box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.18);
 }
-.wubdle-input-wrap > input::placeholder { color: #8a87a8; }
+.wubdle-input-wrap > input::placeholder { color: var(--wubdle-muted); }
 
 .wubdle-suggestions {
   position: absolute;
@@ -209,8 +212,8 @@ body.wubdle-page {
   margin: 0;
   padding: 6px;
   list-style: none;
-  background: #15132b;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: light-dark(#fff, #15132b);
+  border: 1px solid var(--wubdle-border);
   border-radius: 12px;
   z-index: 20;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
@@ -221,17 +224,17 @@ body.wubdle-page {
   text-align: left;
   background: transparent;
   border: none;
-  color: #e8e6fb;
+  color: var(--wubdle-text);
   padding: 9px 12px;
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.95rem;
 }
-.wubdle-suggestions li button:hover { background: rgba(0, 229, 255, 0.14); color: #fff; }
+.wubdle-suggestions li button:hover { background: rgba(0, 229, 255, 0.14); color: var(--wubdle-text); }
 
 .wubdle-message {
   text-align: center;
-  color: #ffd166;
+  color: light-dark(#806000, #ffd166);
   margin: 4px auto 14px;
   font-size: 0.95rem;
 }
@@ -240,7 +243,7 @@ body.wubdle-page {
 .wubdle-win {
   text-align: center;
   background: linear-gradient(135deg, rgba(0, 229, 255, 0.12), rgba(255, 0, 229, 0.12));
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid var(--wubdle-border);
   border-radius: 18px;
   padding: 22px;
   margin-bottom: 20px;
@@ -256,7 +259,7 @@ body.wubdle-page {
   border-radius: 999px;
   background: rgba(124, 77, 255, 0.22);
   border: 1px solid rgba(160, 130, 255, 0.5);
-  color: #d9d2ff;
+  color: light-dark(#4f328b, #d9d2ff);
   font-size: 0.82rem;
   font-weight: 600;
   letter-spacing: 0.03em;
@@ -266,7 +269,7 @@ body.wubdle-page {
   color: var(--wubdle-cyan);
   letter-spacing: 0.1em;
 }
-.wubdle-win p { margin: 4px 0; color: #e6e4fb; }
+.wubdle-win p { margin: 4px 0; color: var(--wubdle-text); }
 .wubdle-win-seed code {
   font-family: 'Courier New', monospace;
   color: var(--wubdle-cyan);
@@ -284,8 +287,8 @@ body.wubdle-page {
   margin-bottom: 20px;
   box-shadow: 0 0 40px rgba(255, 70, 90, 0.18);
 }
-.wubdle-giveup h2 { margin: 0 0 6px; font-size: 1.7rem; color: #ff9aa9; }
-.wubdle-giveup p { margin: 4px 0; color: #e2dde6; }
+.wubdle-giveup h2 { margin: 0 0 6px; font-size: 1.7rem; color: light-dark(#a33146, #ff9aa9); }
+.wubdle-giveup p { margin: 4px 0; color: var(--wubdle-text); }
 .wubdle-answer-row .wubdle-attr.answer {
   background: linear-gradient(135deg, #d8a531, #b8860b);
   color: #1a1206;
@@ -293,7 +296,7 @@ body.wubdle-page {
 }
 .wubdle-answer-row .wubdle-name-cell {
   background: rgba(216, 165, 49, 0.18);
-  color: #ffe2a0;
+  color: light-dark(#6b4d10, #ffe2a0);
 }
 
 /* ─── Board ─── */
@@ -305,7 +308,7 @@ body.wubdle-page {
 }
 .wubdle-row-head .wubdle-cell {
   background: transparent;
-  color: #9b97c0;
+  color: var(--wubdle-muted);
   font-size: clamp(0.5rem, 1.4vw, 0.72rem);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -331,7 +334,7 @@ body.wubdle-page {
   font-size: clamp(0.46rem, 1.35vw, 0.66rem);
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  color: #9b97c0;
+  color: var(--wubdle-muted);
   line-height: 1;
 }
 .wubdle-icon {
@@ -358,8 +361,8 @@ body.wubdle-page {
   hyphens: auto;
 }
 .wubdle-name-cell {
-  background: rgba(255, 255, 255, 0.06);
-  color: #fff;
+  background: light-dark(#e6e0ef, rgba(255, 255, 255, 0.06));
+  color: var(--wubdle-text);
   font-weight: 700;
   align-items: flex-start;
   text-align: left;
@@ -402,8 +405,8 @@ body.wubdle-page {
   width: 100%;
   max-width: 400px;
   text-align: center;
-  background: linear-gradient(160deg, #1a1736, #110f24);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: linear-gradient(160deg, light-dark(#fff, #1a1736), light-dark(#f0ebf8, #110f24));
+  border: 1px solid var(--wubdle-border);
   border-radius: 18px;
   padding: 26px 24px 22px;
   box-shadow: 0 0 60px rgba(124, 77, 255, 0.35), 0 20px 50px rgba(0, 0, 0, 0.5);
@@ -411,7 +414,7 @@ body.wubdle-page {
 }
 .wubdle-modal-message {
   margin: 0 0 20px;
-  color: #ece9ff;
+  color: var(--wubdle-text);
   font-size: 1.05rem;
   line-height: 1.45;
 }

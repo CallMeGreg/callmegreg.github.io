@@ -2,8 +2,8 @@ body.unmatched-page {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  color: #fff;
+  background: linear-gradient(135deg, light-dark(#f3f0fa, #1a1a2e) 0%, light-dark(#e7eef9, #16213e) 100%);
+  color: var(--site-text);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   height: 100vh;
   padding-top: 10px;
@@ -14,15 +14,16 @@ body.unmatched-page {
 .unmatched {
   text-align: center;
   padding: 20px;
-  background: rgba(45, 45, 45, 0.95);
+  background: light-dark(#ffffffed, rgba(45, 45, 45, 0.95));
   backdrop-filter: blur(10px);
   width: 100vw;
   max-width: 850px;
   height: 90vh;
+  max-height: calc(100dvh - 96px);
   overflow-y: auto;
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--site-border);
 }
 
 .unmatched h1 {
@@ -47,7 +48,7 @@ body.unmatched-page {
   display: block;
   font-size: 1.1em;
   margin-bottom: 10px;
-  color: #a8b2d1;
+  color: light-dark(#535c78, #a8b2d1);
 }
 
 .player-button-group {
@@ -61,19 +62,19 @@ body.unmatched-page {
   padding: 12px 32px;
   font-size: 1.2em;
   font-weight: 600;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid var(--site-border);
   border-radius: 10px;
-  background: rgba(80, 80, 80, 0.4);
-  color: #888;
+  background: light-dark(#eef0f7, rgba(80, 80, 80, 0.4));
+  color: var(--site-muted);
   cursor: pointer;
   transition: all 0.3s ease;
   min-width: 60px;
 }
 
 .player-button:hover {
-  background: rgba(100, 100, 100, 0.5);
-  border-color: rgba(255, 255, 255, 0.3);
-  color: #aaa;
+  background: light-dark(#e2e5f2, rgba(100, 100, 100, 0.5));
+  border-color: light-dark(#a2abc5, rgba(255, 255, 255, 0.3));
+  color: var(--site-text);
 }
 
 .player-button.selected {
@@ -91,15 +92,15 @@ body.unmatched-page {
 
 /* Slider Container Styles */
 .slider-container {
-  background: rgba(30, 30, 30, 0.6);
+  background: light-dark(#f2f4fa, rgba(30, 30, 30, 0.6));
   border-radius: 12px;
   padding: 20px;
   margin: 20px 0;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--site-border);
 }
 
 .slider-container h3 {
-  color: #667eea;
+  color: light-dark(#4f5fba, #8e9ff0);
   margin-bottom: 15px;
   font-size: 1.4em;
 }
@@ -119,7 +120,7 @@ body.unmatched-page {
 
 .slider-item label {
   font-size: 1.1em;
-  color: #a8b2d1;
+  color: light-dark(#535c78, #a8b2d1);
   font-weight: 500;
 }
 
@@ -194,23 +195,23 @@ body.unmatched-page {
   display: flex;
   justify-content: space-around;
   margin-top: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--site-border);
   padding: 15px;
   border-radius: 12px;
-  background: rgba(30, 30, 30, 0.6);
+  background: light-dark(#f2f4fa, rgba(30, 30, 30, 0.6));
 }
 
 .grid div {
   width: 45%;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--site-border);
   padding: 15px;
   border-radius: 12px;
-  background: rgba(40, 40, 40, 0.4);
+  background: light-dark(#ffffffb3, rgba(40, 40, 40, 0.4));
 }
 
 .grid div h2 {
   font-size: 1.3em;
-  color: #667eea;
+  color: light-dark(#4f5fba, #8e9ff0);
   margin-bottom: 15px;
 }
 
@@ -250,22 +251,22 @@ body.unmatched-page {
 
 .matchup-results {
   margin-top: 20px;
-  background: rgba(30, 30, 30, 0.6);
+  background: light-dark(#f2f4fa, rgba(30, 30, 30, 0.6));
   border-radius: 12px;
   padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--site-border);
 }
 
 .matchup-results h2 {
   font-size: 1.5em;
   margin-bottom: 15px;
-  color: #667eea;
+  color: light-dark(#4f5fba, #8e9ff0);
 }
 
 .matchup-results h3 {
   font-size: 1.3em;
   margin-bottom: 10px;
-  color: #a8b2d1;
+  color: light-dark(#535c78, #a8b2d1);
 }
 
 .matchup-results ul {
@@ -372,10 +373,10 @@ body.unmatched-page {
 
 .results-section {
   width: 48%;
-  background: rgba(40, 40, 40, 0.4);
+  background: light-dark(#ffffffb3, rgba(40, 40, 40, 0.4));
   padding: 15px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--site-border);
 }
 
 .results-section p {
