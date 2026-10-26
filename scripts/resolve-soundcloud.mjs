@@ -16,28 +16,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { fetchOembed, isSoundCloudEmbed, parseCsv, searchTracks, toCsv } from './soundcloud.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CSV_PATH = path.join(__dirname, '..', 'public', 'dropkit-tracks.csv');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-/* ── Minimal CSV parse/stringify (no quoted fields in our data) ── */
-function parseCsv(text) {
-  const lines = text.trim().split('\n');
-  const headers = lines.shift().split(',');
-  return lines.map((line) => {
-    const cells = line.split(',');
-    const row = {};
-    headers.forEach((h, i) => (row[h] = (cells[i] ?? '').trim()));
-    return row;
-  });
-}
-function toCsv(rows, headers) {
-  const head = headers.join(',');
-  const body = rows.map((r) => headers.map((h) => r[h] ?? '').join(',')).join('\n');
-  return head + '\n' + body + '\n';
-}
 
 /* ── Scrape a working client_id from soundcloud.com ── */
 async function getClientId() {
@@ -153,30 +137,20 @@ function gate(t, artist, title) {
   return true;
 }
 
-async function searchTracks(artist, title, cid) {
-  const q = `${artist} ${title}`;
-  const url = `https://api-v2.soundcloud.com/search/tracks?q=${encodeURIComponent(q)}&limit=8&client_id=${cid}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`search ${res.status}`);
-  const data = await res.json();
-  return data.collection || [];
-}
-
 async function verifyOembed(permalink) {
-  const url = `https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(permalink)}`;
-  const res = await fetch(url);
+  const res = await fetchOembed(permalink);
   if (!res.ok) return null;
   try {
     return await res.json();
-  } catch {
+  } catch (error) {
+    console.warn(`  invalid oEmbed response for ${permalink}: ${error.message}`);
     return null;
   }
 }
 
 async function main() {
   const text = fs.readFileSync(CSV_PATH, 'utf8');
-  const rows = parseCsv(text);
-  const headers = Object.keys(rows[0]);
+  const { rows, headers } = parseCsv(text);
   if (!headers.includes('soundcloudUrl')) headers.push('soundcloudUrl');
 
   console.log(`Resolving ${rows.length} tracks…`);
@@ -205,7 +179,7 @@ async function main() {
     let accepted = '';
     if (best && bestScore >= ACCEPT_THRESHOLD) {
       const oe = await verifyOembed(best.permalink_url);
-      if (oe && oe.html) accepted = best.permalink_url;
+      if (isSoundCloudEmbed(oe?.html)) accepted = best.permalink_url;
       await sleep(120);
     }
 

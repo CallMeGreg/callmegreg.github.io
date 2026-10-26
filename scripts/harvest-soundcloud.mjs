@@ -17,7 +17,8 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { parseCsv, toCsv } from './soundcloud.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CSV_PATH = path.join(__dirname, '..', 'public', 'dropkit-tracks.csv');
@@ -77,41 +78,6 @@ const GENRES = {
     },
   },
 };
-
-/* ── CSV helpers ── */
-function parseCsv(text) {
-  const lines = text.trim().split('\n');
-  const headers = lines.shift().split(',');
-  return lines.map((line) => {
-    const cells = splitCsvLine(line);
-    const row = {};
-    headers.forEach((h, i) => (row[h] = (cells[i] ?? '').trim()));
-    return row;
-  });
-}
-function splitCsvLine(line) {
-  const out = [];
-  let cur = '';
-  let q = false;
-  for (const ch of line) {
-    if (ch === '"') q = !q;
-    else if (ch === ',' && !q) {
-      out.push(cur);
-      cur = '';
-    } else cur += ch;
-  }
-  out.push(cur);
-  return out;
-}
-function csvCell(v) {
-  const s = String(v ?? '');
-  return /[",]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-}
-function toCsv(rows, headers) {
-  const head = headers.join(',');
-  const body = rows.map((r) => headers.map((h) => csvCell(r[h])).join(',')).join('\n');
-  return head + '\n' + body + '\n';
-}
 
 const norm = (s) =>
   (s || '').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]/g, '');
@@ -238,16 +204,25 @@ function freshnessScore(t, tier) {
   return base * recencyWeight(ageMonths(t), tier === 'underground');
 }
 
+export function readPriorTracks(csvPath = CSV_PATH) {
+  const prior = new Map();
+  let text;
+  try {
+    text = fs.readFileSync(csvPath, 'utf8');
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+    return prior;
+  }
+  for (const r of parseCsv(text).rows) {
+    if (r.soundcloudUrl) prior.set(r.soundcloudUrl, r);
+    prior.set(`${norm(r.artist)}|${norm(r.title)}`, r);
+  }
+  return prior;
+}
+
 async function main() {
   // Reuse hand-tuned key/bpm/vibe for tracks we already curated.
-  const prior = new Map();
-  if (fs.existsSync(CSV_PATH)) {
-    for (const r of parseCsv(fs.readFileSync(CSV_PATH, 'utf8'))) {
-      if (r.soundcloudUrl) prior.set(r.soundcloudUrl, r);
-      prior.set(`${norm(r.artist)}|${norm(r.title)}`, r);
-    }
-  }
-
+  const prior = readPriorTracks();
   const cid = await getClientId();
   console.log(`Got client_id (len ${cid.length})\n`);
 
@@ -372,7 +347,9 @@ async function main() {
   console.log(`\nDone. Wrote ${allRows.length} tracks:`, byGenre);
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
+}
