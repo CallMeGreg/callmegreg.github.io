@@ -4,7 +4,7 @@
  *
  * Every row must link to a real, embeddable SoundCloud song. We confirm each
  * `soundcloudUrl` resolves through SoundCloud's public oEmbed endpoint (200 +
- * a thumbnail/html payload). Rows that are missing a URL or fail to resolve are
+ * a trusted player iframe). Rows that are missing a URL or fail to resolve are
  * dropped. Writes the filtered list back to public/dropkit-tracks.csv.
  *
  * Usage: node scripts/verify-soundcloud.mjs [--dry]
@@ -12,6 +12,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { fetchOembed, isSoundCloudEmbed, parseCsv, toCsv } from './soundcloud.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CSV_PATH = path.join(__dirname, '..', 'public', 'dropkit-tracks.csv');
@@ -20,61 +21,20 @@ const CONCURRENCY = 8;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-function splitCsvLine(line) {
-  const out = [];
-  let cur = '';
-  let q = false;
-  for (const ch of line) {
-    if (ch === '"') q = !q;
-    else if (ch === ',' && !q) {
-      out.push(cur);
-      cur = '';
-    } else cur += ch;
-  }
-  out.push(cur);
-  return out;
-}
-function parseCsv(text) {
-  const lines = text.trim().split('\n');
-  const headers = splitCsvLine(lines.shift());
-  return {
-    headers,
-    rows: lines.map((line) => {
-      const cells = splitCsvLine(line);
-      const row = {};
-      headers.forEach((h, i) => (row[h] = (cells[i] ?? '').trim()));
-      return row;
-    }),
-  };
-}
-function csvCell(v) {
-  const s = String(v ?? '');
-  return /[",]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-}
-function toCsv(rows, headers) {
-  return (
-    headers.join(',') +
-    '\n' +
-    rows.map((r) => headers.map((h) => csvCell(r[h])).join(',')).join('\n') +
-    '\n'
-  );
-}
-
 async function verify(url) {
   if (!url) return false;
-  const oembed = `https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url)}`;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const res = await fetch(oembed, { redirect: 'follow' });
+      const res = await fetchOembed(url);
       if (res.status === 429) {
         await sleep(800 * (attempt + 1));
         continue;
       }
       if (!res.ok) return false;
       const data = await res.json();
-      // A real, embeddable track returns an html iframe + thumbnail.
-      return Boolean(data && data.html && /soundcloud\.com/.test(data.html));
-    } catch {
+      return isSoundCloudEmbed(data?.html);
+    } catch (error) {
+      console.warn(`  verification failed for ${url}: ${error.message}`);
       await sleep(300 * (attempt + 1));
     }
   }
