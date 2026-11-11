@@ -64,10 +64,15 @@ test('XML text and attributes are escaped, never treated as imported markup', ()
   assert.ok(svg.includes('&amp; friends'));
   assert.ok(svg.includes('Illus. &lt;Artist&gt;'));
   assert.ok(svg.includes('A&amp;B · 1&lt;2'));
-  assert.doesNotMatch(svg, /<script\b|<B>|<Artist>/);
+  assert.doesNotMatch(svg, /<script\b|<B>|<Artist>/i);
+  for (const tag of ['SCRIPT', 'ScRiPt']) {
+    const mixedCase = renderCardSvg({ ...baseCard, abilityText: `<${tag}>alert("no")</${tag}>` });
+    assert.ok(mixedCase.includes(`&lt;${tag}&gt;`));
+    assert.doesNotMatch(mixedCase, /<script\b/i);
+  }
   const back = renderBackSvg({ ...baseBack, label: injected, sublabel: '<small>& "safe"</small>', color: 'red" onload="bad()' });
   assert.ok(back.includes('&lt;small&gt;&amp; &quot;safe&quot;&lt;/small&gt;'));
-  assert.doesNotMatch(back, /onload=|<small>/);
+  assert.doesNotMatch(back, /onload=|<small>/i);
   assert.match(back, /#223b54/);
 });
 
