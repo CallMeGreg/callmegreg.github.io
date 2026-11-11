@@ -9,6 +9,7 @@ import Jeopardy from './Jeopardy';
 import Wubdle from './Wubdle';
 import Dropkit from './Dropkit';
 import MyHour from './MyHour';
+import CardStudio from './CardStudio';
 import Home from './Home';
 import ThemeToggle from './ThemeToggle';
 import './index.css';
@@ -35,6 +36,7 @@ const router = createBrowserRouter([{
     { path: '/wubdle', element: <Wubdle /> },
     { path: '/dropkit', element: <Dropkit /> },
     { path: '/my-hour', element: <MyHour /> },
+    { path: '/card-studio', element: <CardStudio /> },
   ],
 }]);
 
