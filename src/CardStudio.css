@@ -83,6 +83,7 @@
 .cs .cs-library > .cs-field { padding-inline: 2px; margin-bottom: 12px; }
 .cs .cs-library > .cs-field .cs-field-label { font-size: 10px; }
 .cs .cs-library > .cs-field input { font-size: 12px; }
+.cs .cs-library-actions { display: flex; flex-direction: column; gap: 8px; }
 .cs .cs-add-card { background: var(--cs-accent-soft); border-color: light-dark(#b4c6a9, #c8dfa92e); color: var(--cs-accent); width: 100%; }
 .cs .cs-search { display: flex; align-items: center; gap: 8px; padding: 19px 6px 12px; color: var(--cs-dim); }
 .cs .cs-search > input { border: 0; background: none; color: var(--cs-ink); width: 100%; min-width: 0; font-size: 11px; outline-offset: 3px; }
@@ -433,7 +434,7 @@
   .cs .cs-library { grid-column: 1 / -1; display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 12px 20px; min-height: 0; padding: 18px; }
   .cs .cs-library-top { grid-column: 1; margin: 0; }
   .cs .cs-library > .cs-field { grid-column: 1; grid-row: 2; margin: 0; padding: 0; }
-  .cs .cs-add-card { grid-column: 1; grid-row: 3; }
+  .cs .cs-library-actions { grid-column: 1; grid-row: 3; }
   .cs .cs-search { grid-column: 2; grid-row: 1; padding: 0; }
   .cs .cs-card-list { grid-column: 2; grid-row: 2 / span 2; flex-direction: row; overflow-x: auto; overflow-y: hidden; max-height: none; padding: 4px; }
   .cs .cs-library-card { min-width: 175px; width: 175px; flex-shrink: 0; padding: 10px; }
@@ -469,7 +470,7 @@
   .cs .cs-library { grid-column: auto; grid-template-columns: 1fr auto; gap: 12px; padding: 16px; }
   .cs .cs-library-top { grid-column: 1 / -1; grid-row: 1; }
   .cs .cs-library > .cs-field { grid-column: 1; grid-row: 2; }
-  .cs .cs-add-card { grid-column: 2; grid-row: 2; align-self: flex-end; }
+  .cs .cs-library-actions { grid-column: 2; grid-row: 2; align-self: flex-end; }
   .cs .cs-search { grid-column: 1 / -1; grid-row: 3; padding-block: 3px; }
   .cs .cs-card-list { grid-column: 1 / -1; grid-row: 4; }
   .cs .cs-library-card { width: 175px; min-width: 175px; }

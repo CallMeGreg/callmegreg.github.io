@@ -14,6 +14,13 @@ Full-art cards are borderless, with artwork across the entire trim and outlined
 text over transparent areas. Bleed extends the artwork edges without changing
 the trimmed composition; other templates retain their selectable frames.
 
+**Randomize cards**, just below **New card**, asks for confirmation before replacing
+every card's element, HP, stage, ability name and text, moves (including names,
+damage, energy costs, and descriptions), and flavor text with locally generated
+options. It includes cards hidden by search and keeps names, uploaded artwork,
+layouts, and all other settings. Results save automatically like other edits.
+Download a project backup first if you want to keep the previous designs.
+
 After Hours is the default page theme. Alternate visual previews remain available
 at `/card-studio?theme=blueprint` and `/card-studio?theme=press` (Print Shop).
 The explicit After Hours preview is `/card-studio?theme=neon`. Each supports the
