@@ -61,6 +61,7 @@ export const articles = [
 ];
 
 export const applets = [
+  { name: 'Card Studio', description: 'Design and print custom trading cards.', category: 'Tool', path: '/card-studio', image: '/images/card-studio.svg', color: '#b8dbac' },
   { name: 'My Hour', description: 'Your playlist. One minute at a time.', category: 'Music', path: '/my-hour', image: '/images/my-hour.png', color: '#a4edba' },
   { name: 'DropKit', description: 'Build your next DJ set.', category: 'Music', path: '/dropkit', image: '/images/dropkit.png', color: '#c7a6ff' },
   { name: 'Wubdle', description: 'A daily dose of music discovery.', category: 'Game', path: '/wubdle', image: '/images/wubdle.svg', color: '#a3d9ec' },
