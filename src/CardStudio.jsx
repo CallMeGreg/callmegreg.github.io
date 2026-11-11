@@ -9,6 +9,7 @@ import {
 import { getCardLayout, renderBackSvg, renderCardSvg, svgDataUrl } from './cardStudioRender.mjs';
 import { assertProjectCapacity, downloadPng, downloadText, fileName, readArtwork, readProjectFile } from './cardStudioFiles.mjs';
 import { getPackPlacement, renderPackSvg } from './cardStudioPack.mjs';
+import { randomizeCards } from './cardStudioRandomize.mjs';
 import './CardStudio.css';
 
 const TYPE_LABELS = Object.fromEntries(TYPES.map(type => [type.id, type.label]));
@@ -116,13 +117,16 @@ const CardThumbnail = memo(function CardThumbnail({ card }) {
   return <img src={source} alt="" loading="lazy" width="50" height="70" />;
 });
 
-function CardLibrary({ project, onSelect, onAdd, onName, busy }) {
+function CardLibrary({ project, onSelect, onAdd, onRandomize, onName, busy }) {
   const [query, setQuery] = useState('');
   const cards = project.cards.filter(card => `${card.name} ${TYPE_LABELS[card.type]}`.toLowerCase().includes(query.toLowerCase()));
   return <aside className="cs-library cs-panel" aria-label="Card collection">
     <div className="cs-library-top"><span className="cs-eyebrow">YOUR COLLECTION</span><span className="cs-count">{project.cards.length}</span></div>
     <TextField label="Project name" value={project.name} onChange={onName} maxLength={80} />
-    <button className="cs-button cs-add-card" onClick={onAdd} disabled={busy || project.cards.length >= MAX_CARDS}><Icon name="plus" size={17} /> New card</button>
+    <div className="cs-library-actions">
+      <button className="cs-button cs-add-card" onClick={onAdd} disabled={busy || project.cards.length >= MAX_CARDS}><Icon name="plus" size={17} /> New card</button>
+      <button className="cs-button cs-subtle" onClick={onRandomize} disabled={busy}><Icon name="spark" size={17} /> Randomize cards</button>
+    </div>
     <label className="cs-search"><Icon name="search" size={15} /><input type="search" aria-label="Search cards" placeholder="Find a card..." value={query} onChange={event => setQuery(event.target.value)} /></label>
     <div className="cs-card-list">
       {cards.map(card => <button key={card.id} className={`cs-library-card ${project.selectedId === card.id ? 'is-selected' : ''}`} onClick={() => onSelect(card.id)} aria-pressed={project.selectedId === card.id}>
@@ -589,6 +593,11 @@ export default function CardStudio() {
     } catch (error) { reportError(error); }
   }
 
+  function randomizeCollection() {
+    if (!window.confirm(`Randomize element, HP, stage, ability name, ability text, moves, and flavor text for all ${project.cards.length} cards in this collection? Names, uploaded artwork, layouts, and other settings will be kept. This cannot be undone. Download your project first if you want to keep the current designs.`)) return;
+    setProject(current => ({ ...current, cards: randomizeCards(current.cards) }));
+  }
+
   function removeCard() {
     if (!window.confirm(`Delete "${selected.name || 'Untitled card'}" from this collection? This cannot be undone.`)) return;
     const cards = project.cards.filter(card => card.id !== selected.id);
@@ -700,7 +709,7 @@ export default function CardStudio() {
       {printJob && <div className="cs-banner" role="status"><Icon name="print" /><p>{printReady ? 'Print sheets are prepared at actual size. Print cards with the chosen duplex edge; print pack wrappers single-sided. If your browser did not open a dialog, use the button here.' : 'Preparing full-resolution artwork and print sheets. The print dialog will open when every image is ready.'}</p><button className="cs-text-button" disabled={!printReady} onClick={() => window.print()}>Open print dialog</button><button className="cs-text-button" onClick={finishPrint}>Close</button></div>}
       <div id="cs-workspace" tabIndex="-1">
         {tab === 'design' && <div className="cs-design-workspace">
-          <CardLibrary project={project} onSelect={selectedId => { setProject(current => ({ ...current, selectedId })); }} onAdd={addCard} onName={name => setProject(current => ({ ...current, name }))} busy={isBusy} />
+          <CardLibrary project={project} onSelect={selectedId => { setProject(current => ({ ...current, selectedId })); }} onAdd={addCard} onRandomize={randomizeCollection} onName={name => setProject(current => ({ ...current, name }))} busy={isBusy} />
           <CardPreview card={selected} back={project.back} side={side} setSide={setSide} guides={guides} setGuides={setGuides} bleed={project.print.bleed} setBleed={bleed => updatePrint({ bleed })} exportCard={exportCard} busy={isBusy} />
           <Inspector card={selected} project={project} section={section} setSection={value => { setSection(value); setSide(value === 'back' ? 'back' : 'front'); }} updateCard={updateCard} updateBack={updateBack} upload={upload} duplicate={duplicateCard} remove={removeCard} busy={isBusy} />
         </div>}
